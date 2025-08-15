@@ -36,7 +36,11 @@ class FolderServiceImplTest {
 
   @Test
   void testCreateFolder_addsFolderSuccessfully() {
-    FolderEntity folder = new FolderEntity(null, "Neuer Ordner", "test-id", LocalDateTime.now());
+  FolderEntity folder = new FolderEntity(
+    null,
+    "Neuer Ordner",
+    "test-id",
+    LocalDateTime.now());
     FolderEntity created = folderService.createFolder(folder);
     assertNotNull(created.getId());
     assertEquals("Neuer Ordner", created.getName());
@@ -47,7 +51,12 @@ class FolderServiceImplTest {
   @Test
   void testUpdateFolder_updatesFolderSuccessfully() {
     FolderEntity original = folderService.getFolderContents("test-id").getFolder();
-    FolderEntity updated = new FolderEntity(original.getId(), "Geänderter Name", original.getParentId(), original.getCreatedDate());
+    FolderEntity updated = new FolderEntity(
+      original.getId(),
+      "Geänderter Name",
+      original.getParentId(),
+      original.getCreatedDate()
+    );
     FolderEntity result = folderService.updateFolder("test-id", updated);
     assertEquals("Geänderter Name", result.getName());
     assertEquals("test-id", result.getId());

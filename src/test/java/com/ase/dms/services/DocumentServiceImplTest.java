@@ -36,8 +36,14 @@ class DocumentServiceImplTest {
 
   @Test
   void testCreateDocument_addsDocumentSuccessfully() {
-    MockMultipartFile file = new MockMultipartFile("file", "testfile.txt", "text/plain", "Hello World".getBytes());
-    DocumentEntity document = documentService.createDocument(file, "folder-123");
+  MockMultipartFile file = new MockMultipartFile(
+    "file",
+    "testfile.txt",
+    "text/plain",
+    "Hello World".getBytes());
+  DocumentEntity document = documentService.createDocument(
+    file,
+    "folder-123");
     assertNotNull(document);
     assertEquals("testfile.txt", document.getName());
     assertEquals("folder-123", document.getFolderId());
@@ -48,7 +54,15 @@ class DocumentServiceImplTest {
   @Test
   void testUpdateDocument_updatesDocumentSuccessfully() {
     DocumentEntity original = documentService.getDocument("test-id");
-    DocumentEntity updated = new DocumentEntity(original.getId(), "updated.txt", original.getType(), original.getSize(), original.getFolderId(), original.getOwnerId(), original.getCreatedDate(), original.getDownloadUrl());
+  DocumentEntity updated = new DocumentEntity(
+    original.getId(),
+    "updated.txt",
+    original.getType(),
+    original.getSize(),
+    original.getFolderId(),
+    original.getOwnerId(),
+    original.getCreatedDate(),
+    original.getDownloadUrl());
     DocumentEntity result = documentService.updateDocument("test-id", updated);
     assertEquals("updated.txt", result.getName());
     assertEquals("test-id", result.getId());
@@ -56,7 +70,16 @@ class DocumentServiceImplTest {
 
   @Test
   void testUpdateDocument_nonExistingId_throwsException() {
-    DocumentEntity dummy = new DocumentEntity("non-id", "dummy.txt", "text/plain", 1L, "folder", "owner", LocalDateTime.now(), "url");
+    DocumentEntity dummy = new DocumentEntity(
+      "non-id",
+      "dummy.txt",
+      "text/plain",
+      1L,
+      "folder",
+      "owner",
+      LocalDateTime.now(),
+      "url"
+    );
     Exception exception = assertThrows(RuntimeException.class, () -> {
       documentService.updateDocument("non-id", dummy);
     });
