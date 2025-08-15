@@ -48,17 +48,29 @@ This project uses Checkstyle (CLI jar) and EditorConfig to enforce a consistent 
 
 - How to run locally:
   - Using the bundled/dl jar:
-    - Windows PowerShell:
-      ```powershell
-      java -jar checkstyle.jar -c checkstyle.xml -f xml -o target\checkstyle-report.xml src\main\java src\test\java
+    - **Ubuntu/Linux (bash/zsh):**
+      ```bash
+      java -jar checkstyle-11.0.0-all.jar -c checkstyle.xml -f xml -o target/checkstyle-report.xml src/main/java src/test/java
       ```
-      Or, if you have `checkstyle-11.0.0-all.jar`:
+      Or, if you have `checkstyle.jar`:
+      ```bash
+      java -jar checkstyle.jar -c checkstyle.xml -f xml -o target/checkstyle-report.xml src/main/java src/test/java
+      ```
+      For plain, human‑readable output:
+      ```bash
+      java -jar checkstyle-11.0.0-all.jar -c checkstyle.xml -f plain src/main/java src/test/java
+      ```
+    - **Windows PowerShell:**
       ```powershell
       java -jar checkstyle-11.0.0-all.jar -c checkstyle.xml -f xml -o target\checkstyle-report.xml src\main\java src\test\java
       ```
-    - Plain, human‑readable output:
+      Or, if you have `checkstyle.jar`:
       ```powershell
-      java -jar checkstyle.jar -c checkstyle.xml -f plain src\main\java src\test\java
+      java -jar checkstyle.jar -c checkstyle.xml -f xml -o target\checkstyle-report.xml src\main\java src\test\java
+      ```
+      For plain, human‑readable output:
+      ```powershell
+      java -jar checkstyle-11.0.0-all.jar -c checkstyle.xml -f plain src\main\java src\test\java
       ```
 
 - IDE auto-formatting:
