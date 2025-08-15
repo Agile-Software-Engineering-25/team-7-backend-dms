@@ -1,6 +1,6 @@
-# UserService
+# DMS
 
-UserService is a Spring Boot-based application designed to manage user-related operations. It leverages modern Java (Java 21) and integrates with various Spring Boot modules for web, data, and testing functionalities.
+DMS is a Spring Boot-based application designed to manage document and folder operations. It leverages modern Java (Java 21) and integrates with various Spring Boot modules for web, data, and testing functionalities.
 
 ## Features
 
@@ -20,8 +20,8 @@ UserService is a Spring Boot-based application designed to manage user-related o
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/your-repo/userservice.git
-cd userservice
+git clone https://github.com/Agile-Software-Engineering-25/team-7-backend-dms.git
+cd team-7-backend-dms
 ```
 ### Build the Project
 ```bash
