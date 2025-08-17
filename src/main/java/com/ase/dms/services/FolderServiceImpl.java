@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class FolderServiceImpl implements FolderService {
     FolderEntity folder = folderStorage.get(id);
     ArrayList<FolderEntity> subfolders = new ArrayList<>();
     for (FolderEntity subfolder : folderStorage.values()) {
-      if (subfolder.getParentId().equals(id)) {
+      if (Objects.equals(subfolder.getParentId(), id)) {
         subfolders.add(subfolder);
       }
     }
