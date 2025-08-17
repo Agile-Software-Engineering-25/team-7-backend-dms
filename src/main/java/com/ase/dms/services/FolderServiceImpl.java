@@ -24,7 +24,7 @@ public class FolderServiceImpl implements FolderService {
   @Override
   public FolderResponseDTO getFolderContents(String id) {
     if (!folderStorage.containsKey(id)) {
-      throw new RuntimeException("Ordner nicht gefunden");
+      throw new FolderNotFoundException("Ordner nicht gefunden");
     }
 
     FolderEntity folder = folderStorage.get(id);
@@ -53,7 +53,7 @@ public class FolderServiceImpl implements FolderService {
   @Override
   public FolderEntity updateFolder(String id, FolderEntity folder) {
     if (!folderStorage.containsKey(id)) {
-      throw new RuntimeException("Ordner nicht gefunden");
+      throw new FolderNotFoundException("Ordner nicht gefunden");
     }
     folder.setId(id);
     folderStorage.put(id, folder);
@@ -63,8 +63,16 @@ public class FolderServiceImpl implements FolderService {
   @Override
   public void deleteFolder(String id) {
     if (!folderStorage.containsKey(id)) {
-      throw new RuntimeException("Ordner nicht gefunden");
+      throw new FolderNotFoundException("Ordner nicht gefunden");
     }
     folderStorage.remove(id);
   }
+
+  // Custom exception for folder not found
+  public static class FolderNotFoundException extends RuntimeException {
+    public FolderNotFoundException(String message) {
+      super(message);
+    }
+  }
+
 }

@@ -34,7 +34,7 @@ public class DocumentServiceImpl implements DocumentService {
   @Override
   public DocumentEntity getDocument(String id) {
     if (!documentStorage.containsKey(id)) {
-      throw new RuntimeException("Dokument nicht gefunden");
+      throw new DocumentNotFoundException("Dokument nicht gefunden");
     }
     return documentStorage.get(id);
   }
@@ -60,7 +60,7 @@ public class DocumentServiceImpl implements DocumentService {
   @Override
   public DocumentEntity updateDocument(String id, DocumentEntity document) {
     if (!documentStorage.containsKey(id)) {
-      throw new RuntimeException("Dokument nicht gefunden");
+      throw new DocumentNotFoundException("Dokument nicht gefunden");
     }
     document.setId(id);
     documentStorage.put(id, document);
@@ -70,8 +70,14 @@ public class DocumentServiceImpl implements DocumentService {
   @Override
   public void deleteDocument(String id) {
     if (!documentStorage.containsKey(id)) {
-      throw new RuntimeException("Dokument nicht gefunden");
+            throw new DocumentNotFoundException("Dokument nicht gefunden");
     }
     documentStorage.remove(id);
+  }
+  // Custom exception for document not found
+  public static class DocumentNotFoundException extends RuntimeException {
+    public DocumentNotFoundException(String message) {
+      super(message);
+    }
   }
 }
