@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.ase.dms.exceptions.DocumentNotFoundException;
 
 @Service
 public class DocumentServiceImpl implements DocumentService {
@@ -73,11 +74,5 @@ public class DocumentServiceImpl implements DocumentService {
             throw new DocumentNotFoundException("Dokument nicht gefunden");
     }
     documentStorage.remove(id);
-  }
-  // Custom exception for document not found
-  public static class DocumentNotFoundException extends RuntimeException {
-    public DocumentNotFoundException(String message) {
-      super(message);
-    }
   }
 }

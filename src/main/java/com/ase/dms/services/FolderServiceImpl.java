@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import com.ase.dms.exceptions.FolderNotFoundException;
 
 @Service
 public class FolderServiceImpl implements FolderService {
@@ -67,12 +68,4 @@ public class FolderServiceImpl implements FolderService {
     }
     folderStorage.remove(id);
   }
-
-  // Custom exception for folder not found
-  public static class FolderNotFoundException extends RuntimeException {
-    public FolderNotFoundException(String message) {
-      super(message);
-    }
-  }
-
 }

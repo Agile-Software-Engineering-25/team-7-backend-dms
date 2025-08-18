@@ -116,3 +116,9 @@ The project uses the following key dependencies:
 - `spring-boot-starter-security`: For securing the application with basic authentication.
 - `springdoc-openapi-ui`: For generating OpenAPI documentation and Swagger UI.
 - `spring-boot-starter-actuator`: For monitoring and managing the application.
+
+## API behavior: DELETE semantics
+
+Note about DELETE idempotency: our current implementation throws an exception when a client attempts to DELETE a non-existing document/resource. This is a deliberate choice to make clients explicitly aware when they try to remove something that isn't present. While REST idempotency concerns server state (repeated DELETEs produce the same state), some teams prefer returning success for missing resources (204 No Content) to make clients simpler and more tolerant of race conditions. Both choices are defensible; we keep the exception behavior here for stricter semantics and clearer client feedback.
+
+If you'd prefer the API to be more forgiving (returning 204 when the resource is already gone), we can change the delete implementation to be a no-op when the resource is absent and adjust tests accordingly.
