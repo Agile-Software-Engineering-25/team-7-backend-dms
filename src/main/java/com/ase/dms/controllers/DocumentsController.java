@@ -32,10 +32,10 @@ public class DocumentsController {
     return ResponseEntity.ok(documentService.getDocument(id));
   }
 
-  @PostMapping
+  @PostMapping("/{id}")
   public ResponseEntity<DocumentEntity> uploadDocument(
       @RequestParam("file") MultipartFile file,
-      @RequestParam("folderId") String folderId) {
+      @PathVariable("id") String folderId) {
     DocumentEntity doc = documentService.createDocument(file, folderId);
     return ResponseEntity.status(HttpStatus.CREATED).body(doc);
   }
