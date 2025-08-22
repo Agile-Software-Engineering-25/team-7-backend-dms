@@ -1,4 +1,4 @@
-package com.ase.dms.controllers;
+package com.ase.userservice.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +9,7 @@ public class RootController {
 
 	@GetMapping("/")
 	public ResponseEntity<String> root() {
-		return ResponseEntity.ok("API Root: /dms/v1/");
+		return ResponseEntity.ok("API Root: /api/v1/");
 	}
 
 }

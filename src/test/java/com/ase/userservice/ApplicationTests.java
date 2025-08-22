@@ -1,4 +1,4 @@
-package com.ase.dms;
+package com.ase.userservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

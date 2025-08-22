@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.ase</groupId>
-    <artifactId>dms</artifactId>
+    <artifactId>userservice</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>dms</name>
-    <description>dms</description>
+    <name>userService</name>
+    <description>userService</description>
     <url/>
     <licenses>
         <license/>

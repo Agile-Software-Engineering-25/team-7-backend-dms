@@ -1,4 +1,4 @@
-package com.ase.dms;
+package com.ase.userservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
