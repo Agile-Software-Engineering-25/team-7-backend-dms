@@ -42,6 +42,15 @@ mvn test
 ### System Tests
 Here information will follow, but system tests will be run on a central server and reports will be made.
 
+## Documentation
+Generated with Springdoc OpenAPI
+
+| Type         | URL                                                                                        |
+| ------------ |--------------------------------------------------------------------------------------------|
+| Swagger UI   | [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html) |
+| OpenAPI JSON | [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)                     |
+| OpenAPI YAML | [http://localhost:8080/v3/api-docs.yaml](http://localhost:8080/v3/api-docs.yaml)           |
+
 ## Code Style & Linting
 
 This project uses Checkstyle (CLI jar) and EditorConfig to enforce a consistent Java code style.
