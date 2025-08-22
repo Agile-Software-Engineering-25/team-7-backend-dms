@@ -1,6 +1,6 @@
-# UserService
+# DMS
 
-UserService is a Spring Boot-based application designed to manage user-related operations. It leverages modern Java (Java 21) and integrates with various Spring Boot modules for web, data, and testing functionalities.
+DMS is a Spring Boot-based application designed to manage document and folder operations. It leverages modern Java (Java 21) and integrates with various Spring Boot modules for web, data, and testing functionalities.
 
 ## Features
 
@@ -20,8 +20,8 @@ UserService is a Spring Boot-based application designed to manage user-related o
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/your-repo/userservice.git
-cd userservice
+git clone https://github.com/Agile-Software-Engineering-25/team-7-backend-dms.git
+cd team-7-backend-dms
 ```
 ### Build the Project
 ```bash
@@ -128,3 +128,9 @@ The project uses the following key dependencies:
 - `spring-boot-starter-security`: For securing the application with basic authentication.
 - `springdoc-openapi-ui`: For generating OpenAPI documentation and Swagger UI.
 - `spring-boot-starter-actuator`: For monitoring and managing the application.
+
+## API behavior: DELETE semantics
+
+Note about DELETE idempotency: our current implementation throws an exception when a client attempts to DELETE a non-existing document/resource. This is a deliberate choice to make clients explicitly aware when they try to remove something that isn't present. While REST idempotency concerns server state (repeated DELETEs produce the same state), some teams prefer returning success for missing resources (204 No Content) to make clients simpler and more tolerant of race conditions. Both choices are defensible; we keep the exception behavior here for stricter semantics and clearer client feedback.
+
+If you'd prefer the API to be more forgiving (returning 204 when the resource is already gone), we can change the delete implementation to be a no-op when the resource is absent and adjust tests accordingly.
