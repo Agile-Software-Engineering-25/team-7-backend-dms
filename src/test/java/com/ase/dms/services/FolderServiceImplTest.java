@@ -49,6 +49,21 @@ class FolderServiceImplTest {
   }
 
   @Test
+  void testCreateFolder_withNameConflict_incrementsName() {
+    FolderEntity folder1 = new FolderEntity(null, "Ordner", "test-id", LocalDateTime.now());
+    FolderEntity created1 = folderService.createFolder(folder1);
+    assertEquals("Ordner", created1.getName());
+
+    FolderEntity folder2 = new FolderEntity(null, "Ordner", "test-id", LocalDateTime.now());
+    FolderEntity created2 = folderService.createFolder(folder2);
+    assertEquals("Ordner (1)", created2.getName());
+
+    FolderEntity folder3 = new FolderEntity(null, "Ordner", "test-id", LocalDateTime.now());
+    FolderEntity created3 = folderService.createFolder(folder3);
+    assertEquals("Ordner (2)", created3.getName());
+  }
+
+  @Test
   void testUpdateFolder_updatesFolderSuccessfully() {
     FolderEntity original = folderService.getFolderContents("test-id").getFolder();
     FolderEntity updated = new FolderEntity(
@@ -60,6 +75,19 @@ class FolderServiceImplTest {
     FolderEntity result = folderService.updateFolder("test-id", updated);
     assertEquals("Geänderter Name", result.getName());
     assertEquals("test-id", result.getId());
+  }
+
+  @Test
+  void testUpdateFolder_withNameConflict_incrementsName() {
+    FolderEntity folder1 = new FolderEntity(null, "Konflikt", "test-id", LocalDateTime.now());
+    FolderEntity created1 = folderService.createFolder(folder1);
+    FolderEntity folder2 = new FolderEntity(null, "Konflikt", "test-id", LocalDateTime.now());
+    FolderEntity created2 = folderService.createFolder(folder2);
+    assertEquals("Konflikt (1)", created2.getName());
+    // folder1 auf den Namen von folder2 updaten
+    created1.setName("Konflikt (1)");
+    FolderEntity updated = folderService.updateFolder(created1.getId(), created1);
+    assertEquals("Konflikt (2)", updated.getName());
   }
 
   @Test
