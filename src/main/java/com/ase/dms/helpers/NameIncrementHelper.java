@@ -20,8 +20,11 @@ public class NameIncrementHelper {
     }
     int counter = 1;
     String newName;
+    int dotIndex = baseName.lastIndexOf('.');
+    String namePart = dotIndex > 0 ? baseName.substring(0, dotIndex) : baseName;
+    String extPart = dotIndex > 0 ? baseName.substring(dotIndex) : "";
     do {
-      newName = baseName + " (" + counter + ")";
+      newName = namePart + " (" + counter + ")" + extPart;
       counter++;
     } while (existingNames.contains(newName));
     return newName;

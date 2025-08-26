@@ -53,7 +53,6 @@ class DocumentServiceImplTest {
 
   @Test
   void testCreateDocument_withNameConflict_incrementsName() {
-    // Erstes Dokument mit gleichem Namen erstellen
     MockMultipartFile file1 = new MockMultipartFile(
       "file",
       "conflict.txt",
@@ -62,23 +61,21 @@ class DocumentServiceImplTest {
     DocumentEntity doc1 = documentService.createDocument(file1, "folder-1");
     assertEquals("conflict.txt", doc1.getName());
 
-    // Zweites Dokument mit gleichem Namen erstellen
     MockMultipartFile file2 = new MockMultipartFile(
       "file",
       "conflict.txt",
       "text/plain",
       "World".getBytes());
     DocumentEntity doc2 = documentService.createDocument(file2, "folder-1");
-    assertEquals("conflict.txt (1)", doc2.getName());
+    assertEquals("conflict (1).txt", doc2.getName());
 
-    // Drittes Dokument mit gleichem Namen erstellen
     MockMultipartFile file3 = new MockMultipartFile(
       "file",
       "conflict.txt",
       "text/plain",
       "Again".getBytes());
     DocumentEntity doc3 = documentService.createDocument(file3, "folder-1");
-    assertEquals("conflict.txt (2)", doc3.getName());
+    assertEquals("conflict (2).txt", doc3.getName());
   }
 
   @Test
@@ -100,7 +97,6 @@ class DocumentServiceImplTest {
 
   @Test
   void testUpdateDocument_withNameConflict_incrementsName() {
-    // Dokumente mit gleichem Namen in einem Ordner
     MockMultipartFile file1 = new MockMultipartFile(
       "file",
       "update.txt",
@@ -113,13 +109,10 @@ class DocumentServiceImplTest {
       "text/plain",
       "World".getBytes());
     DocumentEntity doc2 = documentService.createDocument(file2, "folder-2");
-    // doc2 sollte update.txt(1) heißen
-    assertEquals("update.txt (1)", doc2.getName());
-    // doc1 auf den Namen von doc2 updaten
-    doc1.setName("update.txt (1)");
+    assertEquals("update (1).txt", doc2.getName());
+    doc1.setName("update (1).txt");
     DocumentEntity updated = documentService.updateDocument(doc1.getId(), doc1);
-    // Da update.txt(1) schon vergeben ist, sollte update.txt(2) entstehen
-    assertEquals("update.txt (2)", updated.getName());
+    assertEquals("update (2).txt", updated.getName());
   }
 
   @Test

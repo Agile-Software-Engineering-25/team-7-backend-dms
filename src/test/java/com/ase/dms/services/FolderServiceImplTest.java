@@ -84,7 +84,6 @@ class FolderServiceImplTest {
     FolderEntity folder2 = new FolderEntity(null, "Konflikt", "test-id", LocalDateTime.now());
     FolderEntity created2 = folderService.createFolder(folder2);
     assertEquals("Konflikt (1)", created2.getName());
-    // folder1 auf den Namen von folder2 updaten
     created1.setName("Konflikt (1)");
     FolderEntity updated = folderService.updateFolder(created1.getId(), created1);
     assertEquals("Konflikt (2)", updated.getName());
