@@ -2,70 +2,57 @@ package com.ase.dms.services;
 
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
+import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.repositories.FolderRepository;
+import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import com.ase.dms.exceptions.FolderNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FolderServiceImpl implements FolderService {
 
-  private final Map<String, FolderEntity> folderStorage = new HashMap<>();
+  private final FolderRepository folders;
+  private final DocumentRepository documents;
 
-  public FolderServiceImpl() { // Initializing with a dummy folder for testing purposes
-    String id = "test-id"; //UUID.randomUUID().toString();
-    FolderEntity dummyFolder = new FolderEntity(id, "Dummy Folder", "root", LocalDateTime.now());
-    folderStorage.put(id, dummyFolder);
+  public FolderServiceImpl(FolderRepository folders, DocumentRepository documents) {
+    this.folders = folders;
+    this.documents = documents;
   }
 
   @Override
   public FolderResponseDTO getFolderContents(String id) {
-    if (!folderStorage.containsKey(id)) {
-      throw new FolderNotFoundException("Ordner nicht gefunden");
-    }
+    FolderEntity folder = folders.findById(id)
+      .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
 
-    FolderEntity folder = folderStorage.get(id);
-    ArrayList<FolderEntity> subfolders = new ArrayList<>();
-    for (FolderEntity subfolder : folderStorage.values()) {
-      if (Objects.equals(subfolder.getParentId(), id)) {
-        subfolders.add(subfolder);
-      }
-    }
+    List<FolderEntity> subfolders = folders.findByParentId(id);
+    List<DocumentEntity> docs = documents.findByFolderId(id);
 
-    return new FolderResponseDTO(
-        folder,
-        subfolders,
-        new ArrayList<>()
-    );
+    return new FolderResponseDTO(folder, subfolders, docs);
   }
 
-  @Override
+  @Override @Transactional
   public FolderEntity createFolder(FolderEntity folder) {
-    String id = UUID.randomUUID().toString();
-    folder.setId(id);
-    folderStorage.put(id, folder);
-    return folder;
+    folder.setId(UUID.randomUUID().toString());
+    if (folder.getCreatedDate() == null) folder.setCreatedDate(LocalDateTime.now());
+    return folders.save(folder);
   }
 
-  @Override
+  @Override @Transactional
   public FolderEntity updateFolder(String id, FolderEntity folder) {
-    if (!folderStorage.containsKey(id)) {
-      throw new FolderNotFoundException("Ordner nicht gefunden");
-    }
-    folder.setId(id);
-    folderStorage.put(id, folder);
-    return folder;
+    FolderEntity existing = folders.findById(id)
+      .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
+    existing.setName(folder.getName());
+    // parentId/createdDate nach Bedarf updaten
+    return folders.save(existing);
   }
 
-  @Override
+  @Override @Transactional
   public void deleteFolder(String id) {
-    if (!folderStorage.containsKey(id)) {
-      throw new FolderNotFoundException("Ordner nicht gefunden");
-    }
-    folderStorage.remove(id);
+    if (!folders.existsById(id)) throw new RuntimeException("Ordner nicht gefunden");
+    // optional: erst Dokumente im Ordner löschen
+    folders.deleteById(id);
   }
 }

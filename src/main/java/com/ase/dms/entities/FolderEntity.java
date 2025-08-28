@@ -8,16 +8,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
+@Data @Entity @NoArgsConstructor @AllArgsConstructor
 public class FolderEntity {
   @Id
-  private String id;
+  private String id;          // z.B. UUID
   private String name;
   private String parentId;
+
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
   private LocalDateTime createdDate;
-  //private String downloadUrl; ???
 }

@@ -1,78 +1,58 @@
 package com.ase.dms.services;
 
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import com.ase.dms.exceptions.DocumentNotFoundException;
 
 @Service
 public class DocumentServiceImpl implements DocumentService {
 
-  private static final long DUMMY_INITIAL_SIZE = 1024L;
+  private final DocumentRepository documents;
 
-  private final Map<String, DocumentEntity> documentStorage = new HashMap<>();
+  public DocumentServiceImpl(DocumentRepository documents) {
+    this.documents = documents;
+  }
 
-  public DocumentServiceImpl() { // Initializing with a dummy document for testing purposes
-    String id = "test-id"; //UUID.randomUUID().toString();
-
-    String downloadUrl = "/dms/v1/documents/" + id + "/download";
-    DocumentEntity dummyDocument = new DocumentEntity(
-        id,
-        "dummy.txt",
-        "text/plain",
-        DUMMY_INITIAL_SIZE,
-        "test-id",
-        "owner-id",
-        LocalDateTime.now(),
-        downloadUrl);
-    documentStorage.put(id, dummyDocument);
+  @Override @Transactional
+  public DocumentEntity createDocument(MultipartFile file, String folderId) {
+    try {
+      DocumentEntity doc = new DocumentEntity();
+      doc.setId(UUID.randomUUID().toString());
+      doc.setName(file.getOriginalFilename());
+      doc.setType(file.getContentType());
+      doc.setSize(file.getSize());
+      doc.setFolderId(folderId);
+      doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
+      doc.setCreatedDate(LocalDateTime.now());
+      doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
+      doc.setData(file.getBytes()); // Dateiinhalt speichern
+      return documents.save(doc);
+    } catch (Exception e) {
+      throw new RuntimeException("Upload fehlgeschlagen", e);
+    }
   }
 
   @Override
   public DocumentEntity getDocument(String id) {
-    if (!documentStorage.containsKey(id)) {
-      throw new DocumentNotFoundException("Dokument nicht gefunden");
-    }
-    return documentStorage.get(id);
+    return documents.findById(id)
+      .orElseThrow(() -> new RuntimeException("Dokument nicht gefunden"));
   }
 
-  @Override
-  public DocumentEntity createDocument(MultipartFile file, String folderId) {
-    String id = UUID.randomUUID().toString();
-    String downloadUrl = "/dms/v1/documents/" + id + "/download";
-    String ownerId = "owner-id"; // TODO: retrieve actual owner id
-    DocumentEntity document = new DocumentEntity(
-        id,
-        file.getOriginalFilename(),
-        file.getContentType(),
-        file.getSize(),
-        folderId,
-        ownerId,
-        LocalDateTime.now(),
-        downloadUrl);
-    documentStorage.put(id, document);
-    return document;
+  @Override @Transactional
+  public DocumentEntity updateDocument(String id, DocumentEntity incoming) {
+    DocumentEntity existing = getDocument(id);
+    if (incoming.getName() != null) existing.setName(incoming.getName());
+    // weitere Felder nach Bedarf
+    return documents.save(existing);
   }
 
-  @Override
-  public DocumentEntity updateDocument(String id, DocumentEntity document) {
-    if (!documentStorage.containsKey(id)) {
-      throw new DocumentNotFoundException("Dokument nicht gefunden");
-    }
-    document.setId(id);
-    documentStorage.put(id, document);
-    return document;
-  }
-
-  @Override
+  @Override @Transactional
   public void deleteDocument(String id) {
-    if (!documentStorage.containsKey(id)) {
-            throw new DocumentNotFoundException("Dokument nicht gefunden");
-    }
-    documentStorage.remove(id);
+    if (!documents.existsById(id)) throw new RuntimeException("Dokument nicht gefunden");
+    documents.deleteById(id);
   }
 }

@@ -4,10 +4,11 @@ import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.entities.FolderEntity;
 import java.util.List;
 import lombok.Data;
+import lombok.AllArgsConstructor;
 
-@Data
+@Data @AllArgsConstructor
 public class FolderResponseDTO {
-  private final FolderEntity folder;
-  private final List<FolderEntity> subfolders;
-  private final List<DocumentEntity> documents;
+  private FolderEntity folder;
+  private List<FolderEntity> subfolders;
+  private List<DocumentEntity> documents;
 }

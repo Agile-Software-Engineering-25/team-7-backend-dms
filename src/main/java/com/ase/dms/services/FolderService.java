@@ -8,5 +8,4 @@ public interface FolderService {
   FolderEntity createFolder(FolderEntity folder);
   FolderEntity updateFolder(String id, FolderEntity folder);
   void deleteFolder(String id);
-  //Resource createFolderZip(String id);
 }
