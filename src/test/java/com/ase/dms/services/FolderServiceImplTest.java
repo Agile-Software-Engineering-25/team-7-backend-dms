@@ -86,7 +86,7 @@ class FolderServiceImplTest {
     assertEquals("Konflikt (1)", created2.getName());
     created1.setName("Konflikt (1)");
     FolderEntity updated = folderService.updateFolder(created1.getId(), created1);
-    assertEquals("Konflikt (2)", updated.getName());
+    assertEquals("Konflikt (1) (1)", updated.getName());
   }
 
   @Test

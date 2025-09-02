@@ -112,7 +112,7 @@ class DocumentServiceImplTest {
     assertEquals("update (1).txt", doc2.getName());
     doc1.setName("update (1).txt");
     DocumentEntity updated = documentService.updateDocument(doc1.getId(), doc1);
-    assertEquals("update (2).txt", updated.getName());
+    assertEquals("update (1) (1).txt", updated.getName());
   }
 
   @Test

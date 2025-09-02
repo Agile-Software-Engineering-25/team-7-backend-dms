@@ -13,6 +13,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NameIncrementHelperTest {
+  private final long size = 1024L;
   @Test
   void testGetIncrementedName_noConflict() {
     Set<String> names = new HashSet<>(Arrays.asList("file.txt", "other.txt"));
@@ -41,9 +42,12 @@ class NameIncrementHelperTest {
 
   @Test
   void testCollectSiblingNames_documents() {
-    DocumentEntity d1 = new DocumentEntity("1", "doc.txt", "text/plain", 100, "folder1", "owner", LocalDateTime.now(), "url");
-    DocumentEntity d2 = new DocumentEntity("2", "doc2.txt", "text/plain", 100, "folder1", "owner", LocalDateTime.now(), "url");
-    DocumentEntity d3 = new DocumentEntity("3", "other.txt", "text/plain", 100, "folder2", "owner", LocalDateTime.now(), "url");
+    DocumentEntity d1 = new DocumentEntity(
+        "1", "doc.txt", "text/plain", size, "folder1", "owner", LocalDateTime.now(), "url");
+    DocumentEntity d2 = new DocumentEntity(
+        "2", "doc2.txt", "text/plain", size, "folder1", "owner", LocalDateTime.now(), "url");
+    DocumentEntity d3 = new DocumentEntity(
+        "3", "other.txt", "text/plain", size, "folder2", "owner", LocalDateTime.now(), "url");
     List<DocumentEntity> docs = Arrays.asList(d1, d2, d3);
     Set<String> names = NameIncrementHelper.collectSiblingNames(docs, "folder1", null);
     assertTrue(names.contains("doc.txt"));

@@ -47,7 +47,8 @@ public class FolderServiceImpl implements FolderService {
 
   @Override
   public FolderEntity createFolder(FolderEntity folder) {
-    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(folderStorage.values(), folder.getParentId(), null);
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+        folderStorage.values(), folder.getParentId(), null);
     String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
     folder.setName(uniqueName);
     String id = UUID.randomUUID().toString();
@@ -61,7 +62,8 @@ public class FolderServiceImpl implements FolderService {
     if (!folderStorage.containsKey(id)) {
       throw new FolderNotFoundException("Ordner nicht gefunden");
     }
-    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(folderStorage.values(), folder.getParentId(), id);
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+        folderStorage.values(), folder.getParentId(), id);
     String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
     folder.setName(uniqueName);
     folder.setId(id);

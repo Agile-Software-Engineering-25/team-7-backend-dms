@@ -67,7 +67,8 @@ public class DocumentServiceImpl implements DocumentService {
     if (!documentStorage.containsKey(id)) {
       throw new DocumentNotFoundException("Dokument nicht gefunden");
     }
-    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(documentStorage.values(), document.getFolderId(), id);
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+        documentStorage.values(), document.getFolderId(), id);
     String uniqueName = NameIncrementHelper.getIncrementedName(document.getName(), siblingNames);
     document.setName(uniqueName);
     document.setId(id);

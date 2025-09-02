@@ -47,7 +47,8 @@ public class NameIncrementHelper {
         if (f.getParentId().equals(parentOrFolderId) && !f.getId().equals(excludeId)) {
           names.add(f.getName());
         }
-      } else if (obj instanceof DocumentEntity d) {
+      }
+      else if (obj instanceof DocumentEntity d) {
         if (d.getFolderId().equals(parentOrFolderId) && !d.getId().equals(excludeId)) {
           names.add(d.getName());
         }
