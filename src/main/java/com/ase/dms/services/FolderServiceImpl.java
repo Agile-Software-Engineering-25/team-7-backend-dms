@@ -2,14 +2,16 @@ package com.ase.dms.services;
 
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
+import com.ase.dms.exceptions.FolderNotFoundException;
+import com.ase.dms.helpers.NameIncrementHelper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import com.ase.dms.exceptions.FolderNotFoundException;
 
 @Service
 public class FolderServiceImpl implements FolderService {
@@ -45,6 +47,10 @@ public class FolderServiceImpl implements FolderService {
 
   @Override
   public FolderEntity createFolder(FolderEntity folder) {
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+        folderStorage.values(), folder.getParentId(), null);
+    String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
+    folder.setName(uniqueName);
     String id = UUID.randomUUID().toString();
     folder.setId(id);
     folderStorage.put(id, folder);
@@ -56,6 +62,10 @@ public class FolderServiceImpl implements FolderService {
     if (!folderStorage.containsKey(id)) {
       throw new FolderNotFoundException("Ordner nicht gefunden");
     }
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+        folderStorage.values(), folder.getParentId(), id);
+    String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
+    folder.setName(uniqueName);
     folder.setId(id);
     folderStorage.put(id, folder);
     return folder;

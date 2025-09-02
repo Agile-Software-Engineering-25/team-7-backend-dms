@@ -1,13 +1,15 @@
 package com.ase.dms.services;
 
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.exceptions.DocumentNotFoundException;
+import com.ase.dms.helpers.NameIncrementHelper;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import com.ase.dms.exceptions.DocumentNotFoundException;
 
 @Service
 public class DocumentServiceImpl implements DocumentService {
@@ -42,12 +44,14 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override
   public DocumentEntity createDocument(MultipartFile file, String folderId) {
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(documentStorage.values(), folderId, null);
+    String uniqueName = NameIncrementHelper.getIncrementedName(file.getOriginalFilename(), siblingNames);
     String id = UUID.randomUUID().toString();
     String downloadUrl = "/dms/v1/documents/" + id + "/download";
     String ownerId = "owner-id"; // TODO: retrieve actual owner id
     DocumentEntity document = new DocumentEntity(
         id,
-        file.getOriginalFilename(),
+        uniqueName,
         file.getContentType(),
         file.getSize(),
         folderId,
@@ -63,6 +67,10 @@ public class DocumentServiceImpl implements DocumentService {
     if (!documentStorage.containsKey(id)) {
       throw new DocumentNotFoundException("Dokument nicht gefunden");
     }
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+        documentStorage.values(), document.getFolderId(), id);
+    String uniqueName = NameIncrementHelper.getIncrementedName(document.getName(), siblingNames);
+    document.setName(uniqueName);
     document.setId(id);
     documentStorage.put(id, document);
     return document;
