@@ -18,10 +18,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FolderServiceImplTest {
+  private static final long SIZE_10 = 10L;
 
   @Mock
   private FolderRepository folderRepository;
@@ -55,7 +57,7 @@ class FolderServiceImplTest {
     doc.setId("d1");
     doc.setName("doc.txt");
     doc.setType("text/plain");
-    doc.setSize(10L);
+    doc.setSize(SIZE_10);
     doc.setFolderId("f1");
     doc.setOwnerId("owner");
     doc.setCreatedDate(LocalDateTime.now());

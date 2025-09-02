@@ -36,7 +36,9 @@ public class FolderServiceImpl implements FolderService {
   @Override @Transactional
   public FolderEntity createFolder(FolderEntity folder) {
     folder.setId(UUID.randomUUID().toString());
-    if (folder.getCreatedDate() == null) folder.setCreatedDate(LocalDateTime.now());
+    if (folder.getCreatedDate() == null){
+       folder.setCreatedDate(LocalDateTime.now());
+    }
     return folders.save(folder);
   }
 
@@ -51,7 +53,9 @@ public class FolderServiceImpl implements FolderService {
 
   @Override @Transactional
   public void deleteFolder(String id) {
-    if (!folders.existsById(id)) throw new RuntimeException("Ordner nicht gefunden");
+    if (!folders.existsById(id)){
+       throw new RuntimeException("Ordner nicht gefunden");
+    }
     // optional: erst Dokumente im Ordner löschen
     folders.deleteById(id);
   }

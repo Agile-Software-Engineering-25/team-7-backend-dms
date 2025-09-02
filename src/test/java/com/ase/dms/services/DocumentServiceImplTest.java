@@ -14,10 +14,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentServiceImplTest {
+
+  private static final long SIZE_1_KB = 1024L;
+  private static final long SIZE_100_B = 100L;
 
   @Mock
   private com.ase.dms.repositories.DocumentRepository documentRepository;
@@ -36,7 +40,7 @@ class DocumentServiceImplTest {
     doc.setId("test-id");
     doc.setName("dummy.txt");
     doc.setType("text/plain");
-    doc.setSize(1024L);
+    doc.setSize(SIZE_1_KB);
     doc.setFolderId("folder-1");
     doc.setOwnerId("owner-id");
     doc.setCreatedDate(LocalDateTime.now());
@@ -97,7 +101,7 @@ class DocumentServiceImplTest {
     original.setId("test-id");
     original.setName("dummy.txt");
     original.setType("text/plain");
-    original.setSize(100L);
+    original.setSize(SIZE_100_B);
     original.setFolderId("folder-1");
     original.setOwnerId("owner-id");
     original.setCreatedDate(LocalDateTime.now());

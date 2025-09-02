@@ -12,7 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class DocumentsController {
 
   private final DocumentService documentService;
-  public DocumentsController(DocumentService documentService) { this.documentService = documentService; }
+  public DocumentsController(DocumentService documentService) {
+     this.documentService = documentService; }
 
   @GetMapping("/{id}")
   public ResponseEntity<?> getDocumentById(@PathVariable String id) {

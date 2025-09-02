@@ -31,7 +31,8 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
       doc.setData(file.getBytes()); // Dateiinhalt speichern
       return documents.save(doc);
-    } catch (Exception e) {
+    }
+     catch (Exception e) {
       throw new RuntimeException("Upload fehlgeschlagen", e);
     }
   }
@@ -45,14 +46,18 @@ public class DocumentServiceImpl implements DocumentService {
   @Override @Transactional
   public DocumentEntity updateDocument(String id, DocumentEntity incoming) {
     DocumentEntity existing = getDocument(id);
-    if (incoming.getName() != null) existing.setName(incoming.getName());
+    if (incoming.getName() != null){
+       existing.setName(incoming.getName());
+      }
     // weitere Felder nach Bedarf
     return documents.save(existing);
   }
 
   @Override @Transactional
   public void deleteDocument(String id) {
-    if (!documents.existsById(id)) throw new RuntimeException("Dokument nicht gefunden");
+    if (!documents.existsById(id)){
+      throw new RuntimeException("Dokument nicht gefunden");
+    }
     documents.deleteById(id);
   }
 }

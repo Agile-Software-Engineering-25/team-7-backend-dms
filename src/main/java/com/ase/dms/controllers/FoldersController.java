@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.*;
 public class FoldersController {
 
   private final FolderService folderService;
-  public FoldersController(FolderService folderService) { this.folderService = folderService; }
+  public FoldersController(FolderService folderService) {
+     this.folderService = folderService; }
 
   @GetMapping("/{id}")
   public ResponseEntity<FolderResponseDTO> getFolderContents(@PathVariable String id) {
