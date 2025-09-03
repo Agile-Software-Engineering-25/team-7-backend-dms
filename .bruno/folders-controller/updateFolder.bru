@@ -1,0 +1,24 @@
+meta {
+  name: updateFolder
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/dms/v1/folders/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 
+}
+
+body:json {
+  {
+    "id": "",
+    "name": "",
+    "parentId": "",
+    "createdDate": ""
+  }
+}

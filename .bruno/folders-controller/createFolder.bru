@@ -1,0 +1,20 @@
+meta {
+  name: createFolder
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/dms/v1/folders
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "",
+    "name": "Test",
+    "parentId": "",
+    "createdDate": ""
+  }
+}

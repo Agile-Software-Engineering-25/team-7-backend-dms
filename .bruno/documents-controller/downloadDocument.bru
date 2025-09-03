@@ -1,0 +1,15 @@
+meta {
+  name: downloadDocument
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/dms/v1/documents/:id/download
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: 
+}
