@@ -16,13 +16,13 @@ public class DocumentsController {
      this.documentService = documentService; }
 
   @GetMapping("/{id}")
-  public ResponseEntity<?> getDocumentById(@PathVariable String id) {
+  public ResponseEntity<DocumentEntity> getDocumentById(@PathVariable String id) {
     return ResponseEntity.ok(documentService.getDocument(id));
   }
 
   // <-- NEU: kein {id} im Pfad, folderId als RequestParam
   @PostMapping
-  public ResponseEntity<?> uploadDocument(
+  public ResponseEntity<DocumentEntity> uploadDocument(
       @RequestParam("file") MultipartFile file,
       @RequestParam("folderId") String folderId) {
     DocumentEntity doc = documentService.createDocument(file, folderId);
@@ -30,13 +30,13 @@ public class DocumentsController {
   }
 
   @PatchMapping("/{id}")
-  public ResponseEntity<?> updateDocument(
+  public ResponseEntity<DocumentEntity> updateDocument(
       @PathVariable String id, @RequestBody DocumentEntity document) {
     return ResponseEntity.ok(documentService.updateDocument(id, document));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<?> deleteDocument(@PathVariable String id) {
+  public ResponseEntity<Void> deleteDocument(@PathVariable String id) {
     documentService.deleteDocument(id);
     return ResponseEntity.noContent().build();
   }
