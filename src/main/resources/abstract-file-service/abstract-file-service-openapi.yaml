@@ -1,0 +1,725 @@
+openapi: 3.1.1
+
+info:
+  title: "Abstract File Service"
+  summary: "A service for managing files in a storage system."
+  version: "0.0.1"
+
+servers:
+  - url: "https://localhost:8080/microservice/abstract-file-service/v1"
+  - url: "https://sau-portal.de/microservice/abstract-file-service/v1"
+
+paths:
+  "/files":
+    get:
+      description: "Search with given query parameters."
+      operationId: "searchFiles"
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/option"
+        - $ref: "#/components/parameters/sort"
+        - $ref: "#/components/parameters/asc"
+        - $ref: "#/components/parameters/fuzziness"
+        - $ref: "#/components/parameters/time"
+        - $ref: "#/components/parameters/start"
+        - $ref: "#/components/parameters/end"
+        - $ref: "#/components/parameters/tags"
+        - $ref: "#/components/parameters/locations"
+        - $ref: "#/components/parameters/owners"
+        - $ref: "#/components/parameters/access"
+
+      responses:
+        "200":
+          description: "Gets all the file-ids, where the tag is included."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      description: "Upload a file."
+      operationId: "uploadFile"
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/UploadFileRequest"
+      responses:
+        "201":
+          description: File uploaded successfully
+          headers:
+            Location:
+              description: URL of the uploaded file
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileProperties"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  "/files/{file-id}/content":
+    get:
+      description: "Returns the file content e.g: The binary data."
+      operationId: "getFile"
+      parameters:
+        - $ref: "#/components/parameters/file-id"
+      responses:
+        "200":
+          $ref: "#/components/responses/FileContent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  "/files/{file-id}":
+    get:
+      description: "Returns Properties of the file."
+      operationId: "getFileProperties"
+      parameters:
+        - $ref: "#/components/parameters/file-id"
+      responses:
+        "200":
+          description: "Properties of the file"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileProperties"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      description: "Updates the properties of a file."
+      operationId: "updateFileProperties"
+      parameters:
+        - $ref: "#/components/parameters/file-id"
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/UpdateFileProperties"
+      responses:
+        "200":
+          description: "successfully processed the request."
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      description: "Replaces the file content while preserving metadata."
+      operationId: "updateFileContent"
+      parameters:
+        - $ref: "#/components/parameters/file-id"
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/UpdateFileContentRequest"
+      responses:
+        "200":
+          description: "File content updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileProperties"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      description: "Update a file."
+      operationId: "updateFile"
+      parameters:
+        - $ref: "#/components/parameters/file-id"
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/UploadFileRequest"
+      responses:
+        "201":
+          description: File uploaded successfully
+          headers:
+            Location:
+              description: URL of the uploaded file
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileProperties"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      description: "Deletes a file."
+      operationId: "deleteFile"
+      parameters:
+        - $ref: "#/components/parameters/file-id"
+      responses:
+        "200":
+          $ref: "#/components/responses/FileId"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  parameters:
+    file-id:
+      description: "ID to identify the file via a query parameter."
+      name: file-id
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/FileId"
+
+    tags:
+      description: >
+        Filter by tag. Prefix with "!" to exclude a tag.
+        Example: tag=cats&tag=!dogs
+      name: tag
+      in: query
+      schema:
+        $ref: "#/components/schemas/Tags"
+
+    fuzziness:
+      name: fuzziness
+      in: query
+      description: >
+        Degree of fuzziness for the search of filenames.
+        0 = exact match, 1 = low, 2 = medium, high = 3+
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 5
+        default: 1
+
+    names:
+      description: >
+        Filter by name. Prefix with "!" to exclude a name.
+        Example: name=cats&name=!dogs
+      name: name
+      in: query
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/Filename"
+
+    locations:
+      description: >
+        Filter by location.
+      name: location
+      in: query
+      schema:
+        $ref: "#/components/schemas/FileLocation"
+
+    owners:
+      description: >
+        Filter by ownerId. Prefix with "!" to exclude a ownerId.
+        Example: tag=1234&tag=!2344
+      name: owner
+      in: query
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/Filename"
+
+    access:
+      name: access
+      in: query
+      schema:
+        description: "Filter by the access rights of the current user/service."
+        type: array
+        items:
+          access_type:
+            type: string
+            enum:
+              - read
+              - write
+              - delete
+              - "!read"
+              - "!write"
+              - "!delete"
+
+    time:
+      description: "What timestamp to search in."
+      name: time
+      in: query
+      schema:
+        type: string
+        enum: ["createdAt", "updatedAt"]
+
+    start:
+      description: "Start time for a time range filter."
+      name: start
+      in: query
+      schema:
+        type: string
+        format: date-time
+
+    end:
+      description: "End time for a time range filter."
+      name: end
+      in: query
+      schema:
+        type: string
+        format: date-time
+
+    # Paginate
+    page:
+      description: "What page should be shown."
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 0
+
+    limit:
+      description: "Number of files in one page."
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 0
+
+    # Search Options
+    option:
+      description: "How the given data should be combined to get the search results."
+      name: option
+      in: query
+      schema:
+        type: string
+        enum: ["and", "or"]
+
+    sort:
+      description: "The datatype used for sorting."
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: ["name", "tags", "locations", "date"]
+
+    asc:
+      description: "If the data should be sorted in ascending order."
+      name: asc
+      in: query
+      schema:
+        type: boolean
+        default: true
+
+  requestBodies:
+    UploadFileRequest:
+      description: "Upload a file with metadata / Create a directory."
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - name
+              - mime-type
+            properties:
+              file:
+                type: string
+                nullable: true
+                format: binary
+                description: The file to upload. Leave empty to create directory.
+              name:
+                $ref: "#/components/schemas/Filename"
+              mime-type:
+                $ref: "#/components/schemas/SupportedMediaType"
+              owner-id:
+                $ref: "#/components/schemas/OwnerId"
+              tags:
+                $ref: "#/components/schemas/Tags"
+              access:
+                $ref: "#/components/schemas/AccessRights"
+              locations:
+                $ref: "#/components/schemas/FileLocation"
+
+    UpdateFileContentRequest:
+      description: "Update file content while preserving metadata"
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - file
+            properties:
+              file:
+                type: string
+                format: binary
+                description: "The new file content"
+              mime-type:
+                $ref: "#/components/schemas/SupportedMediaType"
+                description: "Update MIME type if content type changes"
+
+    UpdateFileProperties:
+      content:
+        application/json:
+          schema:
+            description: "Update the Metadata of a file."
+            type: object
+            properties:
+              access:
+                $ref: "#/components/schemas/AccessRights"
+              metadata:
+                type: object
+                properties:
+                  name:
+                    $ref: "#/components/schemas/Filename"
+                  owner-id:
+                    $ref: "#/components/schemas/OwnerId"
+              tags:
+                $ref: "#/components/schemas/Tags"
+              locations:
+                $ref: "#/components/schemas/FileLocation"
+
+  responses:
+    ### File Property
+
+    FileProperty:
+      description: "Returns properties of a file."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FileProperties"
+
+    FileId:
+      description: "Id of a file."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FileId"
+
+    ### File Response
+
+    FileContent:
+      description: "Returns the file."
+      content:
+        text/html:
+          schema:
+            type: string
+            format: binary
+        image/jpeg: # JPG Image
+          schema:
+            type: string
+            format: binary
+        image/png: # PNG Image
+          schema:
+            type: string
+            format: binary
+        image/gif: # GIF Image
+          schema:
+            type: string
+            format: binary
+        application/msword: # Word (.doc)
+          schema:
+            type: string
+            format: binary
+        application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+          schema:
+            type: string
+            format: binary
+            # Word (.docx)
+        application/vnd.ms-excel: # Excel (.xls)
+          schema:
+            type: string
+            format: binary
+        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: # Excel (.xlsx)
+          schema:
+            type: string
+            format: binary
+        application/vnd.ms-powerpoint: # PowerPoint (.ppt)
+          schema:
+            type: string
+            format: binary
+        application/vnd.openxmlformats-officedocument.presentationml.presentation:
+          # PowerPoint (.pptx)
+          schema:
+            type: string
+            format: binary
+        application/zip: # ZIP Archive
+          schema:
+            type: string
+            format: binary
+        application/pdf: # PDF File
+          schema:
+            type: string
+            format: binary
+        text/calendar: # ics File
+          schema:
+            type: string
+            format: binary
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DirectoryProperties"
+        application/octet-stream: # Just Binary Data
+          schema:
+            type: string
+            format: binary
+
+    ### Error Responses
+
+    BadRequest:
+      description: "bad request"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ErrorSchema"
+
+    Unauthorized:
+      description: "unauthorized"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ErrorSchema"
+
+    Forbidden:
+      description: "Forbidden"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ErrorSchema"
+
+    NotFound:
+      description: "Not Found"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ErrorSchema"
+
+    UnsupportedMediaType:
+      description: "unsupported media type"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ErrorSchema"
+
+    InternalServerError:
+      description: "internal server error"
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ErrorSchema"
+
+  schemas:
+    ### Successful Response Schemas
+
+    FileProperties:
+      description: "Includes all the File Properties."
+      type: object
+      properties:
+        file-id:
+          $ref: "#/components/schemas/FileId"
+
+        access:
+          $ref: "#/components/schemas/AccessRights"
+
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+
+        tags:
+          $ref: "#/components/schemas/Tags"
+
+        locations:
+          $ref: "#/components/schemas/FileLocation"
+
+    DirectoryProperties:
+      description: "Represents the response if a file is a directory."
+      allOf:
+        - $ref: "#/components/schemas/FileProperties"
+        - $ref: "#/components/schemas/ArrayOfFileProperties"
+
+    ArrayOfFileProperties:
+      description: "An array of file properties."
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileProperties"
+
+    SearchResult:
+      allOf:
+        - $ref: "#/components/schemas/ArrayOfFileProperties"
+        - type: object
+          properties:
+            more:
+              $ref: "#/components/schemas/MorePages"
+
+    MorePages:
+      description: "True if there are more pages."
+      type: boolean
+
+    ### File Properties
+    Metadata:
+      description: "Represents additional Metadata for a file"
+      allOf:
+        - $ref: "#/components/schemas/TimeMetadata"
+        - type: object
+      required:
+        - type
+        - name
+        - owner-id
+      properties:
+        mime-type:
+          $ref: "#/components/schemas/SupportedMediaType"
+        name:
+          $ref: "#/components/schemas/Filename"
+        owner-id:
+          $ref: "#/components/schemas/OwnerId"
+        size:
+          type: number
+          description: "The size of the file in Bytes."
+
+    Filename:
+      type: string
+      description: "The name of the file."
+
+    FileLocation:
+      type: array
+      items:
+        $ref: "#/components/schemas/FileId"
+
+    SupportedMediaType:
+      description: "MIME type of the file. For Reference: https://www.iana.org/assignments/media-types/media-types.xhtml"
+      type: string
+
+    TimeMetadata:
+      type: object
+      description: "Includes time related metadata."
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          description: "Creation timestamp with seconds precision (ISO 8601)"
+        updatedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: "Timestamp of the last update with seconds precision (ISO 8601)"
+
+    OwnerId:
+      type: integer
+      description: "Id to identify the Owner"
+
+    AccessRights:
+      type: object
+      description: "Specifies which user has access to the file."
+      properties:
+        read:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnerId"
+        write:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnerId"
+        delete:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnerId"
+
+    Tags:
+      description: "Tags associated with that file"
+      type: array
+      items:
+        type: string
+
+    FileId:
+      description: "Used to identify a file."
+      type:
+        integer
+
+      ### Error Schemas
+
+    ErrorSchema:
+      type: object
+      properties:
+        title:
+          type: string
+          description: "A short, human-readable summary of the problem"
+        status:
+          type: integer
+          description: "The HTTP status code applicable to this problem"
+        detail:
+          type: string
+          description: "A explanation specific to this occurrence of the problem"
+
+    SecuritySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+
+security:
+  - bearerAuth: []
