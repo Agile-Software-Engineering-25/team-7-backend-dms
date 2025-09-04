@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ase.dms.exceptions.FolderNotFoundException;
 
 @Service
 public class FolderServiceImpl implements FolderService {
@@ -26,11 +27,26 @@ public class FolderServiceImpl implements FolderService {
 
   @Override
   public FolderResponseDTO getFolderContents(String id) {
-    FolderEntity folder = folders.findById(id)
-      .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
+    if (!id.equals("root")) {
+      // Validate UUID
+      try {
+        UUID.fromString(id);
+      } catch (Exception e) {
+        throw new FolderNotFoundException("Invalid folder id: must be UUID or 'root'");
+      }
+    }
 
-    List<FolderEntity> subfolders = folders.findByParentId(id);
-    List<DocumentEntity> docs = documents.findByFolderId(id);
+    FolderEntity folder;
+    if (id.equals("root")) {
+      folder = folders.findByNameAndParentIdIsNull("root")
+        .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
+    } else {
+      folder = folders.findById(id)
+        .orElseThrow(() -> new FolderNotFoundException("Ordner nicht gefunden"));
+    }
+
+    List<FolderEntity> subfolders = folders.findByParentId(folder.getId());
+    List<DocumentEntity> docs = documents.findByFolderId(folder.getId());
 
     return new FolderResponseDTO(folder, subfolders, docs);
   }

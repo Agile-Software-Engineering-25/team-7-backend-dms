@@ -3,6 +3,7 @@ package com.ase.dms.services;
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.entities.FolderEntity;
+import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
 
@@ -42,7 +43,7 @@ class FolderServiceImplTest {
   void getFolderContents_existingId_returnsFolderWithLists() {
     // Arrange
     FolderEntity folder = new FolderEntity();
-    folder.setId("f1");
+    folder.setId("ac917402-ba8c-48b9-8aa9-c2400c5833eb");
     folder.setName("Root");
     folder.setParentId("root");
     folder.setCreatedDate(LocalDateTime.now());
@@ -50,7 +51,7 @@ class FolderServiceImplTest {
     FolderEntity sub = new FolderEntity();
     sub.setId("f2");
     sub.setName("Sub");
-    sub.setParentId("f1");
+    sub.setParentId("ac917402-ba8c-48b9-8aa9-c2400c5833eb");
     sub.setCreatedDate(LocalDateTime.now());
 
     DocumentEntity doc = new DocumentEntity();
@@ -58,22 +59,22 @@ class FolderServiceImplTest {
     doc.setName("doc.txt");
     doc.setType("text/plain");
     doc.setSize(SIZE_10);
-    doc.setFolderId("f1");
+    doc.setFolderId("ac917402-ba8c-48b9-8aa9-c2400c5833eb");
     doc.setOwnerId("owner");
     doc.setCreatedDate(LocalDateTime.now());
     doc.setDownloadUrl("/dms/v1/documents/d1/download");
     doc.setData(new byte[0]);
 
-    when(folderRepository.findById("f1")).thenReturn(Optional.of(folder));
-    when(folderRepository.findByParentId("f1")).thenReturn(List.of(sub));
-    when(documentRepository.findByFolderId("f1")).thenReturn(List.of(doc));
+    when(folderRepository.findById("ac917402-ba8c-48b9-8aa9-c2400c5833eb")).thenReturn(Optional.of(folder));
+    when(folderRepository.findByParentId("ac917402-ba8c-48b9-8aa9-c2400c5833eb")).thenReturn(List.of(sub));
+    when(documentRepository.findByFolderId("ac917402-ba8c-48b9-8aa9-c2400c5833eb")).thenReturn(List.of(doc));
 
     // Act
-    FolderResponseDTO dto = folderService.getFolderContents("f1");
+    FolderResponseDTO dto = folderService.getFolderContents("ac917402-ba8c-48b9-8aa9-c2400c5833eb");
 
     // Assert
     assertNotNull(dto);
-    assertEquals("f1", dto.getFolder().getId());
+    assertEquals("ac917402-ba8c-48b9-8aa9-c2400c5833eb", dto.getFolder().getId());
     assertEquals(1, dto.getSubfolders().size());
     assertEquals("f2", dto.getSubfolders().getFirst().getId());
     assertEquals(1, dto.getDocuments().size());
@@ -82,11 +83,38 @@ class FolderServiceImplTest {
 
   @Test
   void getFolderContents_nonExisting_throws() {
-    when(folderRepository.findById("unknown")).thenReturn(Optional.empty());
+    when(folderRepository.findById("ac917402-ba8c-48b9-8aa9-c2400c5833eb")).thenReturn(Optional.empty());
 
     RuntimeException ex = assertThrows(RuntimeException.class,
-        () -> folderService.getFolderContents("unknown"));
+        () -> folderService.getFolderContents("ac917402-ba8c-48b9-8aa9-c2400c5833eb"));
     assertTrue(ex.getMessage().contains("Ordner nicht gefunden"));
+  }
+
+  @Test
+  void getFolderContents_withInvalidId_throwsFolderNotFoundException() {
+    String invalidId = "not-a-uuid";
+    FolderNotFoundException ex = assertThrows(FolderNotFoundException.class,
+      () -> folderService.getFolderContents(invalidId));
+    assertTrue(ex.getMessage().contains("Invalid folder id"));
+  }
+
+  @Test
+  void getFolderContents_withRootId_alwaysReturnsFolder() {
+    FolderEntity rootFolder = new FolderEntity();
+    rootFolder.setId("root-uuid");
+    rootFolder.setName("root");
+    rootFolder.setParentId(null);
+    rootFolder.setCreatedDate(LocalDateTime.now());
+
+    when(folderRepository.findByNameAndParentIdIsNull("root")).thenReturn(Optional.of(rootFolder));
+    when(folderRepository.findByParentId("root-uuid")).thenReturn(List.of());
+    when(documentRepository.findByFolderId("root-uuid")).thenReturn(List.of());
+
+    FolderResponseDTO response = folderService.getFolderContents("root");
+    assertNotNull(response);
+    assertNotNull(response.getFolder());
+    assertEquals("root", response.getFolder().getName());
+    assertNull(response.getFolder().getParentId());
   }
 
   @Test
