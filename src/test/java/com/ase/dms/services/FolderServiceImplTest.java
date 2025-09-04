@@ -75,9 +75,9 @@ class FolderServiceImplTest {
     assertNotNull(dto);
     assertEquals("f1", dto.getFolder().getId());
     assertEquals(1, dto.getSubfolders().size());
-    assertEquals("f2", dto.getSubfolders().get(0).getId());
+    assertEquals("f2", dto.getSubfolders().getFirst().getId());
     assertEquals(1, dto.getDocuments().size());
-    assertEquals("d1", dto.getDocuments().get(0).getId());
+    assertEquals("d1", dto.getDocuments().getFirst().getId());
   }
 
   @Test
@@ -114,7 +114,7 @@ class FolderServiceImplTest {
     existing.setParentId("root");
     existing.setCreatedDate(LocalDateTime.now());
 
-    when(folderRepository.findById("f1")).thenReturn(Optional.of(existing));
+    when(folderRepository.findById(any())).thenReturn(Optional.of(existing));
     when(folderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
     FolderEntity update = new FolderEntity();

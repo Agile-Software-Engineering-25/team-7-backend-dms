@@ -3,10 +3,12 @@ package com.ase.dms.services;
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.repositories.FolderRepository;
 import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +38,11 @@ public class FolderServiceImpl implements FolderService {
   @Override @Transactional
   public FolderEntity createFolder(FolderEntity folder) {
     folder.setId(UUID.randomUUID().toString());
-    if (folder.getCreatedDate() == null){
-       folder.setCreatedDate(LocalDateTime.now());
-    }
+    folder.setCreatedDate(LocalDateTime.now());
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+        documents.findByFolderId(folder.getParentId()), folder.getParentId(), null);
+    String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
+    folder.setName(uniqueName);
     return folders.save(folder);
   }
 
@@ -46,7 +50,11 @@ public class FolderServiceImpl implements FolderService {
   public FolderEntity updateFolder(String id, FolderEntity folder) {
     FolderEntity existing = folders.findById(id)
       .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
-    existing.setName(folder.getName());
+    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+        //TODO Should we check the existing parent or incoming parent?
+        documents.findByFolderId(existing.getParentId()), existing.getParentId(), null);
+    String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
+    existing.setName(uniqueName);
     // parentId/createdDate nach Bedarf updaten
     return folders.save(existing);
   }

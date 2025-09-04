@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 )
 public class DocumentEntity {
   @Id
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Eindeutige ID des Dokuments")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Eindeutige ID des Dokuments", example = "4111b676-474c-4014-a7ee-53fc5cb90127")
   private String id;
 
   @NotBlank
@@ -41,7 +41,7 @@ public class DocumentEntity {
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateigröße in Bytes")
   private long size;
 
-  @Schema(description = "ID des übergeordneten Ordners als uuid", example = "123e4567-e89b-12d3-a456-426614174000")
+  @Schema(description = "ID des übergeordneten Ordners als uuid", example = "ef9b2274-817e-4cba-879e-383548577f4e")
   private String folderId;
 
   @Schema(description = "ID des Besitzers (User) des Dokuments")

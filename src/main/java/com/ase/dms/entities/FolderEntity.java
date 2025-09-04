@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data @Entity @NoArgsConstructor @AllArgsConstructor
 public class FolderEntity {
   @Id
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Eindeutige ID des Ordners")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Eindeutige ID des Ordners", example = "03d3d491-1fa7-437f-b617-698a4d4c9d84")
   private String id;
 
   @NotBlank
@@ -22,7 +22,7 @@ public class FolderEntity {
   @Schema(description = "Name des Ordners", example = "Projekte")
   private String name;
 
-  @Schema(description = "ID des übergeordneten Ordners als uuid", example = "123e4567-e89b-12d3-a456-426614174000")
+  @Schema(description = "ID des übergeordneten Ordners als uuid", example = "c12b8e51-6c40-42b6-86e9-d8cf823f4d34")
   private String parentId;
 
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")

@@ -2,6 +2,7 @@ package com.ase.dms.services;
 
 import com.ase.dms.entities.DocumentEntity;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,9 +63,7 @@ class DocumentServiceImplTest {
   void testGetDocument_nonExistingId_throwsException() {
     when(documentRepository.findById("non-existing-id")).thenReturn(Optional.empty());
 
-    Exception exception = assertThrows(RuntimeException.class, () -> {
-      service.getDocument("non-existing-id");
-    });
+    Exception exception = assertThrows(RuntimeException.class, () -> service.getDocument("non-existing-id"));
     assertTrue(exception.getMessage().contains("Dokument nicht gefunden"));
   }
 
@@ -90,35 +89,80 @@ class DocumentServiceImplTest {
     assertEquals("folder-123", created.getFolderId());
     assertEquals("text/plain", created.getType());
 
-    
+
     assertNotNull(service.getDocument(created.getId()));
   }
 
   @Test
   void testCreateDocument_withNameConflict_incrementsName() {
+    when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    // Erstes Dokument: findByFolderId()() gibt leere Liste zurück
+    when(documentRepository.findByFolderId(any())).thenReturn(List.of());
+
     MockMultipartFile file1 = new MockMultipartFile(
       "file",
       "conflict.txt",
       "text/plain",
       "Hello".getBytes());
-    DocumentEntity doc1 = documentService.createDocument(file1, "folder-1");
+    DocumentEntity doc1 = service.createDocument(file1, "folder-1");
     assertEquals("conflict.txt", doc1.getName());
+
+    // Zweites Dokument: findByFolderId()() gibt doc1 zurück
+    when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1));
 
     MockMultipartFile file2 = new MockMultipartFile(
       "file",
       "conflict.txt",
       "text/plain",
       "World".getBytes());
-    DocumentEntity doc2 = documentService.createDocument(file2, "folder-1");
+    DocumentEntity doc2 = service.createDocument(file2, "folder-1");
     assertEquals("conflict (1).txt", doc2.getName());
+
+    // Drittes Dokument: findByFolderId()() gibt doc1 und doc2 zurück
+    when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1, doc2));
 
     MockMultipartFile file3 = new MockMultipartFile(
       "file",
       "conflict.txt",
       "text/plain",
       "Again".getBytes());
-    DocumentEntity doc3 = documentService.createDocument(file3, "folder-1");
+    DocumentEntity doc3 = service.createDocument(file3, "folder-1");
     assertEquals("conflict (2).txt", doc3.getName());
+  }
+
+  @Test
+  void testUpdateDocument_withNameConflict_incrementsName() {
+    when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+  // Erstes Dokument: keine vorhandenen Dokumente
+  when(documentRepository.findByFolderId(any())).thenReturn(List.of());
+
+    MockMultipartFile file1 = new MockMultipartFile(
+      "file",
+      "update.txt",
+      "text/plain",
+      "Hello".getBytes());
+    DocumentEntity doc1 = service.createDocument(file1, "folder-2");
+
+  // Zweites Dokument: doc1 ist bereits vorhanden
+  when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1));
+
+    MockMultipartFile file2 = new MockMultipartFile(
+      "file",
+      "update.txt",
+      "text/plain",
+      "World".getBytes());
+    DocumentEntity doc2 = service.createDocument(file2, "folder-2");
+    assertEquals("update (1).txt", doc2.getName());
+
+  // Mock für findById() für updateDocument()
+  when(documentRepository.findById(any())).thenReturn(Optional.of(doc1));
+
+  // Update: beide Dokumente sind vorhanden
+  when(documentRepository.findByFolderId("folder-2")).thenReturn(List.of(doc1, doc2));
+    doc1.setName("update (1).txt");
+    DocumentEntity updated = service.updateDocument(doc1.getId(), doc1);
+    assertEquals("update (1) (1).txt", updated.getName());
   }
 
   @Test
@@ -138,7 +182,7 @@ class DocumentServiceImplTest {
     when(documentRepository.findById("test-id")).thenReturn(Optional.of(original));
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-    // Update-Objekt nur mit geänderten Feldern 
+    // Update-Objekt nur mit geänderten Feldern
     DocumentEntity updated = new DocumentEntity();
     updated.setName("updated.txt");
 
@@ -148,26 +192,6 @@ class DocumentServiceImplTest {
     // Assert
     assertEquals("updated.txt", result.getName());
     assertEquals("test-id", result.getId());
-  }
-
-  @Test
-  void testUpdateDocument_withNameConflict_incrementsName() {
-    MockMultipartFile file1 = new MockMultipartFile(
-      "file",
-      "update.txt",
-      "text/plain",
-      "Hello".getBytes());
-    DocumentEntity doc1 = documentService.createDocument(file1, "folder-2");
-    MockMultipartFile file2 = new MockMultipartFile(
-      "file",
-      "update.txt",
-      "text/plain",
-      "World".getBytes());
-    DocumentEntity doc2 = documentService.createDocument(file2, "folder-2");
-    assertEquals("update (1).txt", doc2.getName());
-    doc1.setName("update (1).txt");
-    DocumentEntity updated = documentService.updateDocument(doc1.getId(), doc1);
-    assertEquals("update (1) (1).txt", updated.getName());
   }
 
   @Test
@@ -185,9 +209,7 @@ class DocumentServiceImplTest {
     dummy.setDownloadUrl("url");
     dummy.setData(new byte[0]);
 
-    Exception exception = assertThrows(RuntimeException.class, () -> {
-      service.updateDocument("non-id", dummy);
-    });
+    Exception exception = assertThrows(RuntimeException.class, () -> service.updateDocument("non-id", dummy));
     assertTrue(exception.getMessage().contains("Dokument nicht gefunden"));
   }
 
@@ -202,9 +224,7 @@ class DocumentServiceImplTest {
     service.deleteDocument("test-id");
 
     // Assert: getDocument auf gelöschte ID wirft Exception
-    Exception exception = assertThrows(RuntimeException.class, () -> {
-      service.getDocument("test-id");
-    });
+    Exception exception = assertThrows(RuntimeException.class, () -> service.getDocument("test-id"));
     assertTrue(exception.getMessage().contains("Dokument nicht gefunden"));
 
     verify(documentRepository).deleteById("test-id");
@@ -214,9 +234,7 @@ class DocumentServiceImplTest {
   void testDeleteDocument_nonExistingId_throwsException() {
     when(documentRepository.existsById("non-existing-id")).thenReturn(false);
 
-    Exception exception = assertThrows(RuntimeException.class, () -> {
-      service.deleteDocument("non-existing-id");
-    });
+    Exception exception = assertThrows(RuntimeException.class, () -> service.deleteDocument("non-existing-id"));
     assertTrue(exception.getMessage().contains("Dokument nicht gefunden"));
   }
 }
