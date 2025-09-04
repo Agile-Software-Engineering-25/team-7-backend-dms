@@ -51,13 +51,27 @@ public class DocumentServiceImpl implements DocumentService {
   @Override @Transactional
   public DocumentEntity updateDocument(String id, DocumentEntity incoming) {
     DocumentEntity existing = getDocument(id);
-    if (incoming.getName() != null){
+
+    if (incoming.getName() != null) {
+      // Bei Ordnerwechsel den neuen Ordner für Namenskonflikt-Prüfung verwenden
+      String targetFolderId = incoming.getFolderId() != null ? incoming.getFolderId() : existing.getFolderId();
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-          //TODO Should we check the existing folder or incoming folder?
-          documents.findByFolderId(existing.getFolderId()), existing.getFolderId(), null);
+          documents.findByFolderId(targetFolderId), targetFolderId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
-    // weitere Felder nach Bedarf
+
+    if (incoming.getType() != null) {
+      existing.setType(incoming.getType());
+    }
+
+    if (incoming.getFolderId() != null) {
+      existing.setFolderId(incoming.getFolderId());
+    }
+
+    if (incoming.getOwnerId() != null) {
+      existing.setOwnerId(incoming.getOwnerId());
+    }
+
     return documents.save(existing);
   }
 

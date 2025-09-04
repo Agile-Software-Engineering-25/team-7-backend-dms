@@ -12,18 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data @Entity @NoArgsConstructor @AllArgsConstructor @Schema(
-    name = "Document",
-    description = "Repräsentiert ein Dokument im DMS",
-    example = """
-        {
-            "id": "123e4567-e89b-12d3-a456-426614174000",
-            "name": "vertrag",
-            "type": "pdf",
-            "size": 1024000
-        }
-        """
-)
+@Data @Entity @NoArgsConstructor @AllArgsConstructor
 public class DocumentEntity {
   @Id
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Eindeutige ID des Dokuments", example = "4111b676-474c-4014-a7ee-53fc5cb90127")
@@ -51,7 +40,7 @@ public class DocumentEntity {
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Erstellungsdatum")
   private LocalDateTime createdDate;
 
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Download-URL des Dokuments")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Download-URL des Dokuments", example = "/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download")
   private String downloadUrl;
 
   @Lob

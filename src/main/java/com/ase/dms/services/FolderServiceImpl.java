@@ -47,15 +47,22 @@ public class FolderServiceImpl implements FolderService {
   }
 
   @Override @Transactional
-  public FolderEntity updateFolder(String id, FolderEntity folder) {
+  public FolderEntity updateFolder(String id, FolderEntity incoming) {
     FolderEntity existing = folders.findById(id)
-      .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
-    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-        //TODO Should we check the existing parent or incoming parent?
-        documents.findByFolderId(existing.getParentId()), existing.getParentId(), null);
-    String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
-    existing.setName(uniqueName);
-    // parentId/createdDate nach Bedarf updaten
+        .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
+
+    if (incoming.getName() != null) {
+      // Bei Parent-Wechsel den neuen Parent für Namenskonflikt-Prüfung verwenden
+      String targetParentId = incoming.getParentId() != null ? incoming.getParentId() : existing.getParentId();
+      Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+          folders.findByParentId(targetParentId), targetParentId, existing.getId());
+      existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
+    }
+
+    if (incoming.getParentId() != null) {
+      existing.setParentId(incoming.getParentId());
+    }
+
     return folders.save(existing);
   }
 
