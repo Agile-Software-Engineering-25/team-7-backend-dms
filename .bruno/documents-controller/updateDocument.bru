@@ -1,0 +1,25 @@
+meta {
+  name: updateDocument
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/dms/v1/documents/{{docId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "",
+    "name": "",
+    "type": "",
+    "size": 0,
+    "folderId": "",
+    "ownerId": "",
+    "createdDate": "",
+    "downloadUrl": "",
+    "data": ""
+  }
+}

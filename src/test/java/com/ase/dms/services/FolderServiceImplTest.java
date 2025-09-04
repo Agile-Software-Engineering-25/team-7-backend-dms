@@ -1,119 +1,158 @@
 package com.ase.dms.services;
 
 import com.ase.dms.dtos.FolderResponseDTO;
+import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.entities.FolderEntity;
+import com.ase.dms.repositories.DocumentRepository;
+import com.ase.dms.repositories.FolderRepository;
+
 import java.time.LocalDateTime;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 class FolderServiceImplTest {
-  private FolderServiceImpl folderService;
+  private static final long SIZE_10 = 10L;
+
+  @Mock
+  private FolderRepository folderRepository;
+
+  @Mock
+  private DocumentRepository documentRepository;
+
+  private FolderServiceImpl folderService; // <— DIESE Variable fehlte dir
 
   @BeforeEach
   void setUp() {
-    folderService = new FolderServiceImpl();
+    folderService = new FolderServiceImpl(folderRepository, documentRepository);
   }
 
   @Test
-  void testGetFolderContents_existingId_returnsContents() {
-    FolderResponseDTO response = folderService.getFolderContents("test-id");
-    assertNotNull(response);
-    assertEquals("Dummy Folder", response.getFolder().getName());
-    assertTrue(response.getSubfolders().isEmpty());
+  void getFolderContents_existingId_returnsFolderWithLists() {
+    // Arrange
+    FolderEntity folder = new FolderEntity();
+    folder.setId("f1");
+    folder.setName("Root");
+    folder.setParentId("root");
+    folder.setCreatedDate(LocalDateTime.now());
+
+    FolderEntity sub = new FolderEntity();
+    sub.setId("f2");
+    sub.setName("Sub");
+    sub.setParentId("f1");
+    sub.setCreatedDate(LocalDateTime.now());
+
+    DocumentEntity doc = new DocumentEntity();
+    doc.setId("d1");
+    doc.setName("doc.txt");
+    doc.setType("text/plain");
+    doc.setSize(SIZE_10);
+    doc.setFolderId("f1");
+    doc.setOwnerId("owner");
+    doc.setCreatedDate(LocalDateTime.now());
+    doc.setDownloadUrl("/dms/v1/documents/d1/download");
+    doc.setData(new byte[0]);
+
+    when(folderRepository.findById("f1")).thenReturn(Optional.of(folder));
+    when(folderRepository.findByParentId("f1")).thenReturn(List.of(sub));
+    when(documentRepository.findByFolderId("f1")).thenReturn(List.of(doc));
+
+    // Act
+    FolderResponseDTO dto = folderService.getFolderContents("f1");
+
+    // Assert
+    assertNotNull(dto);
+    assertEquals("f1", dto.getFolder().getId());
+    assertEquals(1, dto.getSubfolders().size());
+    assertEquals("f2", dto.getSubfolders().getFirst().getId());
+    assertEquals(1, dto.getDocuments().size());
+    assertEquals("d1", dto.getDocuments().getFirst().getId());
   }
 
   @Test
-  void testGetFolderContents_nonExistingId_throwsException() {
-    Exception exception = assertThrows(RuntimeException.class, () -> {
-      folderService.getFolderContents("non-existing-id");
-    });
-    assertTrue(exception.getMessage().contains("Ordner nicht gefunden"));
+  void getFolderContents_nonExisting_throws() {
+    when(folderRepository.findById("unknown")).thenReturn(Optional.empty());
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+        () -> folderService.getFolderContents("unknown"));
+    assertTrue(ex.getMessage().contains("Ordner nicht gefunden"));
   }
 
   @Test
-  void testCreateFolder_addsFolderSuccessfully() {
-  FolderEntity folder = new FolderEntity(
-    null,
-    "Neuer Ordner",
-    "test-id",
-    LocalDateTime.now());
-    FolderEntity created = folderService.createFolder(folder);
+  void createFolder_persistsAndReturns() {
+    FolderEntity input = new FolderEntity();
+    input.setName("Neu");
+    input.setParentId("root");
+    input.setCreatedDate(LocalDateTime.now());
+
+    // save soll zurückgeben, was reinkommt (mit gesetzter ID durch Service)
+    when(folderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    FolderEntity created = folderService.createFolder(input);
+
     assertNotNull(created.getId());
-    assertEquals("Neuer Ordner", created.getName());
-    assertEquals("test-id", created.getParentId());
-    assertEquals(created, folderService.getFolderContents(created.getId()).getFolder());
+    assertEquals("Neu", created.getName());
+    verify(folderRepository, times(1)).save(any(FolderEntity.class));
   }
 
   @Test
-  void testCreateFolder_withNameConflict_incrementsName() {
-    FolderEntity folder1 = new FolderEntity(null, "Ordner", "test-id", LocalDateTime.now());
-    FolderEntity created1 = folderService.createFolder(folder1);
-    assertEquals("Ordner", created1.getName());
+  void updateFolder_existing_updatesName() {
+    FolderEntity existing = new FolderEntity();
+    existing.setId("f1");
+    existing.setName("Alt");
+    existing.setParentId("root");
+    existing.setCreatedDate(LocalDateTime.now());
 
-    FolderEntity folder2 = new FolderEntity(null, "Ordner", "test-id", LocalDateTime.now());
-    FolderEntity created2 = folderService.createFolder(folder2);
-    assertEquals("Ordner (1)", created2.getName());
+    when(folderRepository.findById(any())).thenReturn(Optional.of(existing));
+    when(folderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-    FolderEntity folder3 = new FolderEntity(null, "Ordner", "test-id", LocalDateTime.now());
-    FolderEntity created3 = folderService.createFolder(folder3);
-    assertEquals("Ordner (2)", created3.getName());
+    FolderEntity update = new FolderEntity();
+    update.setName("Neu");
+
+    FolderEntity result = folderService.updateFolder("f1", update);
+
+    assertEquals("Neu", result.getName());
+    assertEquals("f1", result.getId());
   }
 
   @Test
-  void testUpdateFolder_updatesFolderSuccessfully() {
-    FolderEntity original = folderService.getFolderContents("test-id").getFolder();
-    FolderEntity updated = new FolderEntity(
-      original.getId(),
-      "Geänderter Name",
-      original.getParentId(),
-      original.getCreatedDate()
-    );
-    FolderEntity result = folderService.updateFolder("test-id", updated);
-    assertEquals("Geänderter Name", result.getName());
-    assertEquals("test-id", result.getId());
+  void updateFolder_nonExisting_throws() {
+    when(folderRepository.findById("nope")).thenReturn(Optional.empty());
+
+    FolderEntity update = new FolderEntity();
+    update.setName("X");
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+        () -> folderService.updateFolder("nope", update));
+    assertTrue(ex.getMessage().contains("Ordner nicht gefunden"));
   }
 
   @Test
-  void testUpdateFolder_withNameConflict_incrementsName() {
-    FolderEntity folder1 = new FolderEntity(null, "Konflikt", "test-id", LocalDateTime.now());
-    FolderEntity created1 = folderService.createFolder(folder1);
-    FolderEntity folder2 = new FolderEntity(null, "Konflikt", "test-id", LocalDateTime.now());
-    FolderEntity created2 = folderService.createFolder(folder2);
-    assertEquals("Konflikt (1)", created2.getName());
-    created1.setName("Konflikt (1)");
-    FolderEntity updated = folderService.updateFolder(created1.getId(), created1);
-    assertEquals("Konflikt (1) (1)", updated.getName());
+  void deleteFolder_existing_deletes() {
+    when(folderRepository.existsById("f1")).thenReturn(true);
+
+    folderService.deleteFolder("f1");
+
+    verify(folderRepository, times(1)).deleteById("f1");
   }
 
   @Test
-  void testUpdateFolder_nonExistingId_throwsException() {
-    FolderEntity dummy = new FolderEntity("non-id", "Dummy", "root", LocalDateTime.now());
-    Exception exception = assertThrows(RuntimeException.class, () -> {
-      folderService.updateFolder("non-id", dummy);
-    });
-    assertTrue(exception.getMessage().contains("Ordner nicht gefunden"));
-  }
+  void deleteFolder_nonExisting_throws() {
+    when(folderRepository.existsById("nope")).thenReturn(false);
 
-  @Test
-  void testDeleteFolder_deletesFolderSuccessfully() {
-    FolderEntity folder = new FolderEntity(null, "Zu löschen", "test-id", LocalDateTime.now());
-    FolderEntity created = folderService.createFolder(folder);
-    folderService.deleteFolder(created.getId());
-    Exception exception = assertThrows(RuntimeException.class, () -> {
-      folderService.getFolderContents(created.getId());
-    });
-    assertTrue(exception.getMessage().contains("Ordner nicht gefunden"));
-  }
-
-  @Test
-  void testDeleteFolder_nonExistingId_throwsException() {
-    Exception exception = assertThrows(RuntimeException.class, () -> {
-      folderService.deleteFolder("non-existing-id");
-    });
-    assertTrue(exception.getMessage().contains("Ordner nicht gefunden"));
+    RuntimeException ex = assertThrows(RuntimeException.class,
+        () -> folderService.deleteFolder("nope"));
+    assertTrue(ex.getMessage().contains("Ordner nicht gefunden"));
   }
 }

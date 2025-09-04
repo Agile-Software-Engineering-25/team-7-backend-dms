@@ -1,86 +1,85 @@
 package com.ase.dms.services;
 
 import com.ase.dms.entities.DocumentEntity;
-import com.ase.dms.exceptions.DocumentNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
+import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class DocumentServiceImpl implements DocumentService {
 
-  private static final long DUMMY_INITIAL_SIZE = 1024L;
+  private final DocumentRepository documents;
 
-  private final Map<String, DocumentEntity> documentStorage = new HashMap<>();
+  public DocumentServiceImpl(DocumentRepository documents) {
+    this.documents = documents;
+  }
 
-  public DocumentServiceImpl() { // Initializing with a dummy document for testing purposes
-    String id = "test-id"; //UUID.randomUUID().toString();
-
-    String downloadUrl = "/dms/v1/documents/" + id + "/download";
-    DocumentEntity dummyDocument = new DocumentEntity(
-        id,
-        "dummy.txt",
-        "text/plain",
-        DUMMY_INITIAL_SIZE,
-        "test-id",
-        "owner-id",
-        LocalDateTime.now(),
-        downloadUrl);
-    documentStorage.put(id, dummyDocument);
+  @Override @Transactional
+  public DocumentEntity createDocument(MultipartFile file, String folderId) {
+    try {
+      DocumentEntity doc = new DocumentEntity();
+      doc.setId(UUID.randomUUID().toString());
+      List<DocumentEntity> siblings = documents.findByFolderId(folderId);
+      Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(siblings, folderId, null);
+      doc.setName(NameIncrementHelper.getIncrementedName(file.getOriginalFilename(), siblingNames));
+      doc.setType(file.getContentType());
+      doc.setSize(file.getSize());
+      doc.setFolderId(folderId);
+      doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
+      doc.setCreatedDate(LocalDateTime.now());
+      doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
+      doc.setData(file.getBytes()); // Dateiinhalt speichern
+      return documents.save(doc);
+    }
+     catch (Exception e) {
+      throw new RuntimeException("Upload fehlgeschlagen", e);
+    }
   }
 
   @Override
   public DocumentEntity getDocument(String id) {
-    if (!documentStorage.containsKey(id)) {
-      throw new DocumentNotFoundException("Dokument nicht gefunden");
+    return documents.findById(id)
+      .orElseThrow(() -> new RuntimeException("Dokument nicht gefunden"));
+  }
+
+  @Override @Transactional
+  public DocumentEntity updateDocument(String id, DocumentEntity incoming) {
+    DocumentEntity existing = getDocument(id);
+
+    if (incoming.getName() != null) {
+      // Bei Ordnerwechsel den neuen Ordner für Namenskonflikt-Prüfung verwenden
+      String targetFolderId = incoming.getFolderId() != null ? incoming.getFolderId() : existing.getFolderId();
+      Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+          documents.findByFolderId(targetFolderId), targetFolderId, existing.getId());
+      existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
-    return documentStorage.get(id);
-  }
 
-  @Override
-  public DocumentEntity createDocument(MultipartFile file, String folderId) {
-    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(documentStorage.values(), folderId, null);
-    String uniqueName = NameIncrementHelper.getIncrementedName(file.getOriginalFilename(), siblingNames);
-    String id = UUID.randomUUID().toString();
-    String downloadUrl = "/dms/v1/documents/" + id + "/download";
-    String ownerId = "owner-id"; // TODO: retrieve actual owner id
-    DocumentEntity document = new DocumentEntity(
-        id,
-        uniqueName,
-        file.getContentType(),
-        file.getSize(),
-        folderId,
-        ownerId,
-        LocalDateTime.now(),
-        downloadUrl);
-    documentStorage.put(id, document);
-    return document;
-  }
-
-  @Override
-  public DocumentEntity updateDocument(String id, DocumentEntity document) {
-    if (!documentStorage.containsKey(id)) {
-      throw new DocumentNotFoundException("Dokument nicht gefunden");
+    if (incoming.getType() != null) {
+      existing.setType(incoming.getType());
     }
-    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-        documentStorage.values(), document.getFolderId(), id);
-    String uniqueName = NameIncrementHelper.getIncrementedName(document.getName(), siblingNames);
-    document.setName(uniqueName);
-    document.setId(id);
-    documentStorage.put(id, document);
-    return document;
+
+    if (incoming.getFolderId() != null) {
+      existing.setFolderId(incoming.getFolderId());
+    }
+
+    if (incoming.getOwnerId() != null) {
+      existing.setOwnerId(incoming.getOwnerId());
+    }
+
+    return documents.save(existing);
   }
 
-  @Override
+  @Override @Transactional
   public void deleteDocument(String id) {
-    if (!documentStorage.containsKey(id)) {
-            throw new DocumentNotFoundException("Dokument nicht gefunden");
+    if (!documents.existsById(id)){
+      throw new RuntimeException("Dokument nicht gefunden");
     }
-    documentStorage.remove(id);
+    documents.deleteById(id);
   }
 }

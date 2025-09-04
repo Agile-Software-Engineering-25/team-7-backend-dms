@@ -2,80 +2,76 @@ package com.ase.dms.services;
 
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
-import com.ase.dms.exceptions.FolderNotFoundException;
+import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.helpers.NameIncrementHelper;
+import com.ase.dms.repositories.FolderRepository;
+import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FolderServiceImpl implements FolderService {
 
-  private final Map<String, FolderEntity> folderStorage = new HashMap<>();
+  private final FolderRepository folders;
+  private final DocumentRepository documents;
 
-  public FolderServiceImpl() { // Initializing with a dummy folder for testing purposes
-    String id = "test-id"; //UUID.randomUUID().toString();
-    FolderEntity dummyFolder = new FolderEntity(id, "Dummy Folder", "root", LocalDateTime.now());
-    folderStorage.put(id, dummyFolder);
+  public FolderServiceImpl(FolderRepository folders, DocumentRepository documents) {
+    this.folders = folders;
+    this.documents = documents;
   }
 
   @Override
   public FolderResponseDTO getFolderContents(String id) {
-    if (!folderStorage.containsKey(id)) {
-      throw new FolderNotFoundException("Ordner nicht gefunden");
-    }
+    FolderEntity folder = folders.findById(id)
+      .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
 
-    FolderEntity folder = folderStorage.get(id);
-    ArrayList<FolderEntity> subfolders = new ArrayList<>();
-    for (FolderEntity subfolder : folderStorage.values()) {
-      if (Objects.equals(subfolder.getParentId(), id)) {
-        subfolders.add(subfolder);
-      }
-    }
+    List<FolderEntity> subfolders = folders.findByParentId(id);
+    List<DocumentEntity> docs = documents.findByFolderId(id);
 
-    return new FolderResponseDTO(
-        folder,
-        subfolders,
-        new ArrayList<>()
-    );
+    return new FolderResponseDTO(folder, subfolders, docs);
   }
 
-  @Override
+  @Override @Transactional
   public FolderEntity createFolder(FolderEntity folder) {
+    folder.setId(UUID.randomUUID().toString());
+    folder.setCreatedDate(LocalDateTime.now());
     Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-        folderStorage.values(), folder.getParentId(), null);
+        documents.findByFolderId(folder.getParentId()), folder.getParentId(), null);
     String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
     folder.setName(uniqueName);
-    String id = UUID.randomUUID().toString();
-    folder.setId(id);
-    folderStorage.put(id, folder);
-    return folder;
+    return folders.save(folder);
   }
 
-  @Override
-  public FolderEntity updateFolder(String id, FolderEntity folder) {
-    if (!folderStorage.containsKey(id)) {
-      throw new FolderNotFoundException("Ordner nicht gefunden");
+  @Override @Transactional
+  public FolderEntity updateFolder(String id, FolderEntity incoming) {
+    FolderEntity existing = folders.findById(id)
+        .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
+
+    if (incoming.getName() != null) {
+      // Bei Parent-Wechsel den neuen Parent für Namenskonflikt-Prüfung verwenden
+      String targetParentId = incoming.getParentId() != null ? incoming.getParentId() : existing.getParentId();
+      Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
+          folders.findByParentId(targetParentId), targetParentId, existing.getId());
+      existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
-    Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-        folderStorage.values(), folder.getParentId(), id);
-    String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
-    folder.setName(uniqueName);
-    folder.setId(id);
-    folderStorage.put(id, folder);
-    return folder;
+
+    if (incoming.getParentId() != null) {
+      existing.setParentId(incoming.getParentId());
+    }
+
+    return folders.save(existing);
   }
 
-  @Override
+  @Override @Transactional
   public void deleteFolder(String id) {
-    if (!folderStorage.containsKey(id)) {
-      throw new FolderNotFoundException("Ordner nicht gefunden");
+    if (!folders.existsById(id)){
+       throw new RuntimeException("Ordner nicht gefunden");
     }
-    folderStorage.remove(id);
+    // optional: erst Dokumente im Ordner löschen
+    folders.deleteById(id);
   }
 }

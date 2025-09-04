@@ -1,0 +1,33 @@
+meta {
+  name: uploadDocument
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/dms/v1/documents?folderId=ac917402-ba8c-48b9-8aa9-c2400c5833eb
+  body: multipartForm
+  auth: inherit
+}
+
+params:query {
+  folderId: ac917402-ba8c-48b9-8aa9-c2400c5833eb
+}
+
+body:json {
+  {
+    "file": ""
+  }
+}
+
+body:multipart-form {
+  file: @file(bruno.json)
+}
+
+body:file {
+  file: @file(bruno.json) @contentType(application/json; charset=utf-8)
+}
+
+vars:post-response {
+  docId: res.body.id
+}

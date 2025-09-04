@@ -1,0 +1,11 @@
+meta {
+  name: getDocumentById
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/dms/v1/documents/{{docId}}
+  body: none
+  auth: inherit
+}
