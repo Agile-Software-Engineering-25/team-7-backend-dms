@@ -15,7 +15,9 @@ import lombok.NoArgsConstructor;
 @Data @Entity @NoArgsConstructor @AllArgsConstructor
 public class DocumentEntity {
   @Id
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Eindeutige ID des Dokuments", example = "4111b676-474c-4014-a7ee-53fc5cb90127")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+      description = "Eindeutige ID des Dokuments",
+      example = "4111b676-474c-4014-a7ee-53fc5cb90127")
   private String id;
 
   @NotBlank
@@ -40,7 +42,9 @@ public class DocumentEntity {
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Erstellungsdatum")
   private LocalDateTime createdDate;
 
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Download-URL des Dokuments", example = "/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+      description = "Download-URL des Dokuments",
+      example = "/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download")
   private String downloadUrl;
 
   @Lob

@@ -14,7 +14,9 @@ import lombok.NoArgsConstructor;
 @Data @Entity @NoArgsConstructor @AllArgsConstructor
 public class FolderEntity {
   @Id
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Eindeutige ID des Ordners", example = "03d3d491-1fa7-437f-b617-698a4d4c9d84")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+      description = "Eindeutige ID des Ordners",
+      example = "03d3d491-1fa7-437f-b617-698a4d4c9d84")
   private String id;
 
   @NotBlank
