@@ -9,14 +9,25 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/dms/v1/documents")
+@Tag(name = "Documents", description = "Document management operations")
 public class DocumentsController {
 
   private final DocumentService documentService;
-  public DocumentsController(DocumentService documentService) {
-     this.documentService = documentService; }
 
+  public DocumentsController(DocumentService documentService) {
+     this.documentService = documentService;
+  }
+
+  @Operation(summary = "Get document by ID")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Document found"),
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequestResponse"),
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse"),
+    @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerErrorResponse")
+  })
   @GetMapping("/{id}")
-  public ResponseEntity<DocumentEntity> getDocumentById(@PathVariable String id) {
+  public ResponseEntity<DocumentEntity> getDocumentById(
+      @Parameter(description = "Document UUID") @PathVariable String id) {
     return ResponseEntity.ok(documentService.getDocument(id));
   }
 
@@ -28,24 +39,45 @@ public class DocumentsController {
   })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<DocumentEntity> uploadDocument(
-      @RequestParam("file") MultipartFile file,
-      @RequestParam("folderId") String folderId) {
+      @Parameter(description = "File to upload", required = true) @RequestParam("file") MultipartFile file,
+      @Parameter(description = "Target folder UUID", required = true) @RequestParam("folderId") String folderId) {
     DocumentEntity doc = documentService.createDocument(file, folderId);
     return ResponseEntity.status(HttpStatus.CREATED).body(doc);
   }
 
+  @Operation(summary = "Update document metadata")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Document updated successfully"),
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationErrorResponse"),
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+  })
   @PatchMapping("/{id}")
   public ResponseEntity<DocumentEntity> updateDocument(
-      @PathVariable String id, @RequestBody DocumentEntity document) {
+      @Parameter(description = "Document UUID") @PathVariable String id,
+      @RequestBody DocumentEntity document) {
     return ResponseEntity.ok(documentService.updateDocument(id, document));
   }
 
+  @Operation(summary = "Delete a document")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "204", description = "Document deleted successfully"),
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequestResponse"),
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+  })
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteDocument(@PathVariable String id) {
+  public ResponseEntity<Void> deleteDocument(
+      @Parameter(description = "Document UUID") @PathVariable String id) {
     documentService.deleteDocument(id);
     return ResponseEntity.noContent().build();
   }
 
+  @Operation(summary = "Download document file")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "File downloaded successfully",
+                content = @Content(mediaType = "application/octet-stream",
+                          schema = @Schema(type = "string", format = "binary"))),
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+  })
   @GetMapping("/{id}/download")
   public ResponseEntity<?> downloadDocument(@PathVariable String id) {
     // Minimal: Datei bytes zurückgeben; erstmal nur Platzhalter-Text

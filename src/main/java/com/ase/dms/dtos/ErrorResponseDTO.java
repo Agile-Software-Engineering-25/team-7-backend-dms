@@ -20,7 +20,7 @@ public class ErrorResponseDTO {
     private String errorCode;
 
     @Schema(description = "Human-readable error message",
-            example = "Document with ID '123' was not found")
+            example = "Document with ID 'e4b8cf14-5890-4cbe-baba-0a6396d11dbe' was not found")
     private String message;
 
     @Schema(description = "HTTP status code",
@@ -28,7 +28,7 @@ public class ErrorResponseDTO {
     private int status;
 
     @Schema(description = "Request path where error occurred",
-            example = "/dms/v1/documents/123")
+            example = "/dms/v1/documents/e4b8cf14-5890-4cbe-baba-0a6396d11dbe")
     private String path;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
