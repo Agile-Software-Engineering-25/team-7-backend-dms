@@ -4,6 +4,7 @@ import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.helpers.NameIncrementHelper;
+import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
 import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
@@ -27,22 +28,13 @@ public class FolderServiceImpl implements FolderService {
 
   @Override
   public FolderResponseDTO getFolderContents(String id) {
-    if (!id.equals("root")) {
-      // Validate UUID
-      try {
-        UUID.fromString(id);
-      }
-      catch (Exception e) {
-        throw new FolderNotFoundException("Invalid folder id: must be UUID or 'root'");
-      }
-    }
-
     FolderEntity folder;
     if (id.equals("root")) {
       folder = folders.findByNameAndParentIdIsNull("root")
         .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
     }
     else {
+      UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID or 'root'"));
       folder = folders.findById(id)
         .orElseThrow(() -> new FolderNotFoundException("Ordner nicht gefunden"));
     }
@@ -66,6 +58,7 @@ public class FolderServiceImpl implements FolderService {
 
   @Override @Transactional
   public FolderEntity updateFolder(String id, FolderEntity incoming) {
+    UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID"));
     FolderEntity existing = folders.findById(id)
         .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
 
@@ -86,6 +79,7 @@ public class FolderServiceImpl implements FolderService {
 
   @Override @Transactional
   public void deleteFolder(String id) {
+    UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID"));
     if (!folders.existsById(id)){
        throw new RuntimeException("Ordner nicht gefunden");
     }
