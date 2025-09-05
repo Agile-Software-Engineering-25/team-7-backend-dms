@@ -1,4 +1,4 @@
- package com.ase.dms.dtos;
+package com.ase.dms.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.Map;
+import com.ase.dms.exceptions.ErrorCodes;
 
 /**
  * Standardized error response format for all API errors
@@ -20,7 +21,7 @@ public class ErrorResponseDTO {
     private String errorCode;
 
     @Schema(description = "Human-readable error message",
-            example = "Document with ID 'e4b8cf14-5890-4cbe-baba-0a6396d11dbe' was not found")
+            example = "Document with ID 'fa902fe3-262f-4aee-a68d-57e58c7a0566' was not found")
     private String message;
 
     @Schema(description = "HTTP status code",
@@ -28,7 +29,7 @@ public class ErrorResponseDTO {
     private int status;
 
     @Schema(description = "Request path where error occurred",
-            example = "/dms/v1/documents/e4b8cf14-5890-4cbe-baba-0a6396d11dbe")
+            example = "/dms/v1/documents/fa902fe3-262f-4aee-a68d-57e58c7a0566")
     private String path;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -49,6 +50,15 @@ public class ErrorResponseDTO {
         this.errorCode = errorCode;
         this.message = message;
         this.status = status;
+        this.path = path;
+    }
+
+    // Convenience constructor for enum-based error codes
+    public ErrorResponseDTO(ErrorCodes errorCode, String message, String path) {
+        this();
+        this.errorCode = errorCode.name();
+        this.message = message;
+        this.status = errorCode.getHttpStatusValue();
         this.path = path;
     }
 }

@@ -1,14 +1,12 @@
 package com.ase.dms.exceptions;
 
-import org.springframework.http.HttpStatus;
-
 /**
  * Exception thrown for validation errors
  */
 public class ValidationException extends DmsException {
 
-    public ValidationException(String errorCode, String message) {
-        super(errorCode, message, HttpStatus.BAD_REQUEST.value());
+    public ValidationException(ErrorCodes errorCode, String message) {
+        super(errorCode, message);
     }
 
     public static ValidationException invalidUuid(String value) {
