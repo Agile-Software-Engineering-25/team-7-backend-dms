@@ -4,6 +4,7 @@ import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.helpers.NameIncrementHelper;
+import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
 import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ase.dms.exceptions.FolderNotFoundException;
 
 @Service
 public class FolderServiceImpl implements FolderService {
@@ -26,11 +28,19 @@ public class FolderServiceImpl implements FolderService {
 
   @Override
   public FolderResponseDTO getFolderContents(String id) {
-    FolderEntity folder = folders.findById(id)
-      .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
+    FolderEntity folder;
+    if (id.equals("root")) {
+      folder = folders.findByNameAndParentIdIsNull("root")
+        .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
+    }
+    else {
+      UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID or 'root'"));
+      folder = folders.findById(id)
+        .orElseThrow(() -> new FolderNotFoundException("Ordner nicht gefunden"));
+    }
 
-    List<FolderEntity> subfolders = folders.findByParentId(id);
-    List<DocumentEntity> docs = documents.findByFolderId(id);
+    List<FolderEntity> subfolders = folders.findByParentId(folder.getId());
+    List<DocumentEntity> docs = documents.findByFolderId(folder.getId());
 
     return new FolderResponseDTO(folder, subfolders, docs);
   }
@@ -48,6 +58,7 @@ public class FolderServiceImpl implements FolderService {
 
   @Override @Transactional
   public FolderEntity updateFolder(String id, FolderEntity incoming) {
+    UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID"));
     FolderEntity existing = folders.findById(id)
         .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
 
@@ -68,6 +79,7 @@ public class FolderServiceImpl implements FolderService {
 
   @Override @Transactional
   public void deleteFolder(String id) {
+    UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID"));
     if (!folders.existsById(id)){
        throw new RuntimeException("Ordner nicht gefunden");
     }

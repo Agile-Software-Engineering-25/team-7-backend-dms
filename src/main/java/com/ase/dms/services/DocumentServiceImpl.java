@@ -3,6 +3,8 @@ package com.ase.dms.services;
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.repositories.DocumentRepository;
+import com.ase.dms.helpers.UuidValidator;
+import com.ase.dms.exceptions.DocumentNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +24,7 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override @Transactional
   public DocumentEntity createDocument(MultipartFile file, String folderId) {
+    UuidValidator.validateOrThrow(folderId, new DocumentNotFoundException("Invalid folder id: must be UUID"));
     try {
       DocumentEntity doc = new DocumentEntity();
       doc.setId(UUID.randomUUID().toString());
@@ -44,12 +47,14 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override
   public DocumentEntity getDocument(String id) {
+    UuidValidator.validateOrThrow(id, new DocumentNotFoundException("Invalid document id: must be UUID"));
     return documents.findById(id)
       .orElseThrow(() -> new RuntimeException("Dokument nicht gefunden"));
   }
 
   @Override @Transactional
   public DocumentEntity updateDocument(String id, DocumentEntity incoming) {
+    UuidValidator.validateOrThrow(id, new DocumentNotFoundException("Invalid document id: must be UUID"));
     DocumentEntity existing = getDocument(id);
 
     if (incoming.getName() != null) {
@@ -77,6 +82,7 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override @Transactional
   public void deleteDocument(String id) {
+    UuidValidator.validateOrThrow(id, new DocumentNotFoundException("Invalid document id: must be UUID"));
     if (!documents.existsById(id)){
       throw new RuntimeException("Dokument nicht gefunden");
     }
