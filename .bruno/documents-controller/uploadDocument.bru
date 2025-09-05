@@ -5,13 +5,13 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/dms/v1/documents?folderId=ac917402-ba8c-48b9-8aa9-c2400c5833eb
+  url: {{baseUrl}}/dms/v1/documents?folderId={{folderId}}
   body: multipartForm
   auth: inherit
 }
 
 params:query {
-  folderId: ac917402-ba8c-48b9-8aa9-c2400c5833eb
+  folderId: {{folderId}}
 }
 
 body:json {
@@ -21,7 +21,7 @@ body:json {
 }
 
 body:multipart-form {
-  file: @file(bruno.json)
+  file: @file(C:\Users\A200274746\Downloads\Movie IMG.jpeg)
 }
 
 body:file {

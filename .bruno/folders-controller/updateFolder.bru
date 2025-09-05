@@ -5,20 +5,14 @@ meta {
 }
 
 patch {
-  url: {{baseUrl}}/dms/v1/folders/:id
+  url: {{baseUrl}}/dms/v1/folders/{{folderId}}
   body: json
   auth: inherit
 }
 
-params:path {
-  id: 
-}
-
 body:json {
   {
-    "id": "",
     "name": "",
-    "parentId": "",
-    "createdDate": ""
+    "parentId": ""
   }
 }

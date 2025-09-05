@@ -20,8 +20,13 @@ public class DocumentsController {
     return ResponseEntity.ok(documentService.getDocument(id));
   }
 
-  // <-- NEU: kein {id} im Pfad, folderId als RequestParam
-  @PostMapping
+  @Operation(summary = "Upload a new document")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "201", description = "Document uploaded successfully"),
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/DocumentUploadFailedResponse"),
+    @ApiResponse(responseCode = "413", ref = "#/components/responses/PayloadTooLargeResponse")
+  })
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<DocumentEntity> uploadDocument(
       @RequestParam("file") MultipartFile file,
       @RequestParam("folderId") String folderId) {

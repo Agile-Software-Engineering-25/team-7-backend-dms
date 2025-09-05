@@ -1,6 +1,8 @@
 package com.ase.dms.services;
 
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.exceptions.DocumentNotFoundException;
+import com.ase.dms.exceptions.DocumentUploadException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.helpers.UuidValidator;
@@ -41,7 +43,7 @@ public class DocumentServiceImpl implements DocumentService {
       return documents.save(doc);
     }
      catch (Exception e) {
-      throw new RuntimeException("Upload fehlgeschlagen", e);
+      throw new DocumentUploadException("Failed to process uploaded file: " + file.getOriginalFilename(), e);
     }
   }
 
@@ -49,7 +51,7 @@ public class DocumentServiceImpl implements DocumentService {
   public DocumentEntity getDocument(String id) {
     UuidValidator.validateOrThrow(id, new DocumentNotFoundException("Invalid document id: must be UUID"));
     return documents.findById(id)
-      .orElseThrow(() -> new RuntimeException("Dokument nicht gefunden"));
+      .orElseThrow(() -> new DocumentNotFoundException(id));
   }
 
   @Override @Transactional
@@ -84,7 +86,7 @@ public class DocumentServiceImpl implements DocumentService {
   public void deleteDocument(String id) {
     UuidValidator.validateOrThrow(id, new DocumentNotFoundException("Invalid document id: must be UUID"));
     if (!documents.existsById(id)){
-      throw new RuntimeException("Dokument nicht gefunden");
+      throw new DocumentNotFoundException(id);
     }
     documents.deleteById(id);
   }

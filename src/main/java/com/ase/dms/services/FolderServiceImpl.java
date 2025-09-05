@@ -3,6 +3,7 @@ package com.ase.dms.services;
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
@@ -13,7 +14,6 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.ase.dms.exceptions.FolderNotFoundException;
 
 @Service
 public class FolderServiceImpl implements FolderService {
@@ -60,7 +60,7 @@ public class FolderServiceImpl implements FolderService {
   public FolderEntity updateFolder(String id, FolderEntity incoming) {
     UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID"));
     FolderEntity existing = folders.findById(id)
-        .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
+        .orElseThrow(() -> new FolderNotFoundException(id));
 
     if (incoming.getName() != null) {
       // Bei Parent-Wechsel den neuen Parent für Namenskonflikt-Prüfung verwenden
@@ -81,7 +81,7 @@ public class FolderServiceImpl implements FolderService {
   public void deleteFolder(String id) {
     UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID"));
     if (!folders.existsById(id)){
-       throw new RuntimeException("Ordner nicht gefunden");
+       throw new FolderNotFoundException(id);
     }
     // optional: erst Dokumente im Ordner löschen
     folders.deleteById(id);
