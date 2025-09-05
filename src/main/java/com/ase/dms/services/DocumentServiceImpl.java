@@ -60,6 +60,7 @@ public class DocumentServiceImpl implements DocumentService {
     if (incoming.getName() != null) {
       // Bei Ordnerwechsel den neuen Ordner für Namenskonflikt-Prüfung verwenden
       String targetFolderId = incoming.getFolderId() != null ? incoming.getFolderId() : existing.getFolderId();
+      UuidValidator.validateOrThrow(targetFolderId, new DocumentNotFoundException("Invalid folder id: must be UUID"));
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
           documents.findByFolderId(targetFolderId), targetFolderId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));

@@ -47,6 +47,7 @@ public class FolderServiceImpl implements FolderService {
 
   @Override @Transactional
   public FolderEntity createFolder(FolderEntity folder) {
+    UuidValidator.validateOrThrow(folder.getParentId(), new FolderNotFoundException("Invalid folder id: must be UUID"));
     folder.setId(UUID.randomUUID().toString());
     folder.setCreatedDate(LocalDateTime.now());
     Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
@@ -65,6 +66,8 @@ public class FolderServiceImpl implements FolderService {
     if (incoming.getName() != null) {
       // Bei Parent-Wechsel den neuen Parent für Namenskonflikt-Prüfung verwenden
       String targetParentId = incoming.getParentId() != null ? incoming.getParentId() : existing.getParentId();
+      UuidValidator.validateOrThrow(targetParentId,
+          new FolderNotFoundException("Invalid target folder id: must be UUID"));
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
           folders.findByParentId(targetParentId), targetParentId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
