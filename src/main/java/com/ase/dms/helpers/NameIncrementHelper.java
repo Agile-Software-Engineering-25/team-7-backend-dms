@@ -44,7 +44,7 @@ public class NameIncrementHelper {
     Set<String> names = new java.util.HashSet<>();
     for (Object obj : entities) {
       if (obj instanceof FolderEntity f) {
-        if (f.getParentId().equals(parentOrFolderId) && !f.getId().equals(excludeId)) {
+        if (f.getParentId() != null && f.getParentId().equals(parentOrFolderId) && f.getId() != null && !f.getId().equals(excludeId)) {
           names.add(f.getName());
         }
       }

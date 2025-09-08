@@ -9,8 +9,6 @@ import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
 import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -50,12 +48,12 @@ public class FolderServiceImpl implements FolderService {
   @Override @Transactional
   public FolderEntity createFolder(FolderEntity folder) {
     UuidValidator.validateOrThrow(folder.getParentId());
-    FolderEntity parent = folders.findById(folder.getParentId())
+    folders.findById(folder.getParentId())
         .orElseThrow(() -> new FolderNotFoundException(folder.getParentId()));
     folder.setId(UUID.randomUUID().toString());
     folder.setCreatedDate(LocalDateTime.now());
     Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-        Collections.singleton(parent), folder.getParentId(), null);
+        folders.findByParentId(folder.getParentId()), folder.getParentId(), null);
     String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
     folder.setName(uniqueName);
     return folders.save(folder);

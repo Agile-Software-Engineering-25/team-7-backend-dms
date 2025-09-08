@@ -1,7 +1,7 @@
 meta {
   name: updateDocument
   type: http
-  seq: 4
+  seq: 3
 }
 
 patch {
@@ -13,10 +13,10 @@ patch {
 body:json {
   {
     "id": "",
-    "name": "",
+    "name": "NewName",
     "type": "",
     "size": 0,
-    "folderId": "",
+    "folderId": "{{root}",
     "ownerId": "",
     "createdDate": "",
     "downloadUrl": "",

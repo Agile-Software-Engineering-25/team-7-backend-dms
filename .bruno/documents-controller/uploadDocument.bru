@@ -5,13 +5,13 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/dms/v1/documents?folderId={{folderId}}
+  url: {{baseUrl}}/dms/v1/documents?folderId={{root}}
   body: multipartForm
   auth: inherit
 }
 
 params:query {
-  folderId: {{folderId}}
+  folderId: {{root}}
 }
 
 body:json {
