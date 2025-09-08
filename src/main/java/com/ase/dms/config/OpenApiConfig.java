@@ -1,5 +1,6 @@
 package com.ase.dms.config;
 
+import com.ase.dms.exceptions.ErrorCodes;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -11,10 +12,9 @@ import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 /**
  * OpenAPI configuration for the DMS application
@@ -98,7 +98,7 @@ public class OpenApiConfig {
                     .example(Map.of(
                         "errorCode", "DOC_NOT_FOUND",
                         "message", "Document with ID '2a2d1575-1ba8-446b-a78c-c2035a178588' was not found",
-                        "status", 404,
+                        "status", ErrorCodes.DOC_NOT_FOUND.getHttpStatusValue(),
                         "timestamp", "2025-01-05T10:30:00Z"
                     ))
                 )
@@ -114,7 +114,7 @@ public class OpenApiConfig {
                     .example(Map.of(
                         "errorCode", "DOC_UPLOAD_FAILED",
                         "message", "Document upload failed",
-                        "status", 400,
+                        "status", ErrorCodes.DOC_UPLOAD_FAILED.getHttpStatusValue(),
                         "timestamp", "2025-01-05T10:30:00Z"
                     ))
                 )
@@ -130,7 +130,7 @@ public class OpenApiConfig {
                     .example(Map.of(
                         "errorCode", "FOLDER_NOT_FOUND",
                         "message", "Folder with ID '2a2d1575-1ba8-446b-a78c-c2035a178588' was not found",
-                        "status", 404,
+                        "status", ErrorCodes.FOLDER_NOT_FOUND.getHttpStatusValue(),
                         "timestamp", "2025-01-05T10:30:00Z"
                     ))
                 )

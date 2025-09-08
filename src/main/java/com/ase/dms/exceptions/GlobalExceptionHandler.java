@@ -22,7 +22,7 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * Handle all DMS-specific exceptions using ErrorCodes enum
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleDmsException(
             DmsException ex, HttpServletRequest request) {
 
-        logger.error("DMS Exception: {} - {}", ex.getErrorCodeString(), ex.getMessage(), ex);
+        LOGGER.error("DMS Exception: {} - {}", ex.getErrorCodeString(), ex.getMessage(), ex);
 
         // Use the new convenience constructor with ErrorCodes enum
         ErrorResponseDTO error = new ErrorResponseDTO(
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
         );
         error.setDetails(validationErrors);
 
-        logger.warn("Validation error: {}", validationErrors);
+        LOGGER.warn("Validation error: {}", validationErrors);
         return ResponseEntity.badRequest().body(error);
     }
 
@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleGenericException(
             Exception ex, HttpServletRequest request) {
 
-        logger.error("Unexpected error occurred", ex);
+        LOGGER.error("Unexpected error occurred", ex);
 
         ErrorResponseDTO error = new ErrorResponseDTO(
             ErrorCodes.SYS_INTERNAL_ERROR,

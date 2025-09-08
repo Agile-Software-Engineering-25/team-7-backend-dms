@@ -65,7 +65,7 @@ public class FolderServiceImpl implements FolderService {
     FolderEntity existing = folders.findById(id)
         .orElseThrow(() -> new FolderNotFoundException(id));
 
-    if(incoming.getParentId() != null) {
+    if (incoming.getParentId() != null) {
       UuidValidator.validateOrThrow(incoming.getParentId());
       FolderEntity parent = folders.findById(incoming.getParentId())
           .orElseThrow(() -> new FolderNotFoundException(incoming.getParentId()));
