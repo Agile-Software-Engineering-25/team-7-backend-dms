@@ -2,7 +2,12 @@ package com.ase.dms.controllers;
 
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.services.DocumentService;
+
+import io.swagger.v3.oas.annotations.Parameter;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -79,8 +84,26 @@ public class DocumentsController {
     @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
   })
   @GetMapping("/{id}/download")
-  public ResponseEntity<?> downloadDocument(@PathVariable String id) {
-    // Minimal: Datei bytes zurückgeben; erstmal nur Platzhalter-Text
-    return ResponseEntity.ok("Download kommt später: " + id);
+  public ResponseEntity<byte[]> downloadDocument(
+      @Parameter(description = "Document UUID") @PathVariable String id) {
+    DocumentEntity document = documentService.getDocument(id);
+
+    if (document.getData() == null || document.getData().length == 0) {
+      return ResponseEntity.notFound().build();
+    }
+
+    HttpHeaders headers = new HttpHeaders();
+    if (document.getType() != null && !document.getType().isEmpty()) {
+      headers.setContentType(MediaType.parseMediaType(document.getType()));
+    }
+    else {
+      headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+    }
+
+    String filename = document.getName() != null ? document.getName() : "document";
+    headers.setContentDispositionFormData("attachment", filename);
+    headers.setContentLength(document.getData().length);
+
+    return new ResponseEntity<>(document.getData(), headers, HttpStatus.OK);
   }
 }
