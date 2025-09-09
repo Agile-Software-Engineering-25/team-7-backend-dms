@@ -1,0 +1,16 @@
+# .dockerignore für optimierte Container-Builds
+target/
+!target/*.jar
+.git/
+.gitignore
+*.md
+.idea/
+.vscode/
+*.iml
+*.log
+data/
+checkstyle*.jar
+.editorconfig
+.bruno/
+.github/
+
