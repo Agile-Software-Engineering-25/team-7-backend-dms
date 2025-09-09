@@ -1,7 +1,7 @@
 meta {
   name: createFolder
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
@@ -14,7 +14,7 @@ body:json {
   {
     "id": "",
     "name": "Test",
-    "parentId": "",
+    "parentId": "{{root}}",
     "createdDate": ""
   }
 }

@@ -1,5 +1,6 @@
 package com.ase.dms.helpers;
 
+import com.ase.dms.exceptions.ValidationException;
 import java.util.UUID;
 
 public class UuidValidator {
@@ -7,14 +8,13 @@ public class UuidValidator {
    * Checks if the given string is a valid UUID.
    * Throws the given RuntimeException if not valid.
    * @param id the string to check
-   * @param exception the exception to throw if invalid
    */
-  public static void validateOrThrow(String id, RuntimeException exception) {
+  public static void validateOrThrow(String id) {
     try {
       UUID.fromString(id);
     }
     catch (Exception e) {
-      throw exception;
+      throw ValidationException.invalidUuid(id);
     }
   }
 }

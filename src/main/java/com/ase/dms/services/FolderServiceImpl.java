@@ -3,6 +3,7 @@ package com.ase.dms.services;
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
@@ -13,7 +14,6 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.ase.dms.exceptions.FolderNotFoundException;
 
 @Service
 public class FolderServiceImpl implements FolderService {
@@ -34,7 +34,7 @@ public class FolderServiceImpl implements FolderService {
         .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
     }
     else {
-      UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID or 'root'"));
+      UuidValidator.validateOrThrow(id);
       folder = folders.findById(id)
         .orElseThrow(() -> new FolderNotFoundException("Ordner nicht gefunden"));
     }
@@ -47,10 +47,13 @@ public class FolderServiceImpl implements FolderService {
 
   @Override @Transactional
   public FolderEntity createFolder(FolderEntity folder) {
+    UuidValidator.validateOrThrow(folder.getParentId());
+    folders.findById(folder.getParentId())
+        .orElseThrow(() -> new FolderNotFoundException(folder.getParentId()));
     folder.setId(UUID.randomUUID().toString());
     folder.setCreatedDate(LocalDateTime.now());
     Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-        documents.findByFolderId(folder.getParentId()), folder.getParentId(), null);
+        folders.findByParentId(folder.getParentId()), folder.getParentId(), null);
     String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
     folder.setName(uniqueName);
     return folders.save(folder);
@@ -58,9 +61,16 @@ public class FolderServiceImpl implements FolderService {
 
   @Override @Transactional
   public FolderEntity updateFolder(String id, FolderEntity incoming) {
-    UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID"));
+    UuidValidator.validateOrThrow(id);
     FolderEntity existing = folders.findById(id)
-        .orElseThrow(() -> new RuntimeException("Ordner nicht gefunden"));
+        .orElseThrow(() -> new FolderNotFoundException(id));
+
+    if (incoming.getParentId() != null) {
+      UuidValidator.validateOrThrow(incoming.getParentId());
+      FolderEntity parent = folders.findById(incoming.getParentId())
+          .orElseThrow(() -> new FolderNotFoundException(incoming.getParentId()));
+      existing.setParentId(parent.getId());
+    }
 
     if (incoming.getName() != null) {
       // Bei Parent-Wechsel den neuen Parent für Namenskonflikt-Prüfung verwenden
@@ -69,19 +79,14 @@ public class FolderServiceImpl implements FolderService {
           folders.findByParentId(targetParentId), targetParentId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
-
-    if (incoming.getParentId() != null) {
-      existing.setParentId(incoming.getParentId());
-    }
-
     return folders.save(existing);
   }
 
   @Override @Transactional
   public void deleteFolder(String id) {
-    UuidValidator.validateOrThrow(id, new FolderNotFoundException("Invalid folder id: must be UUID"));
+    UuidValidator.validateOrThrow(id);
     if (!folders.existsById(id)){
-       throw new RuntimeException("Ordner nicht gefunden");
+       throw new FolderNotFoundException(id);
     }
     // optional: erst Dokumente im Ordner löschen
     folders.deleteById(id);

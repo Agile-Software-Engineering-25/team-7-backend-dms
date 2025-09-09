@@ -3,8 +3,14 @@ package com.ase.dms.controllers;
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.services.DocumentService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,18 +20,34 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/dms/v1/documents")
+@Tag(name = "Documents", description = "Document management operations")
 public class DocumentsController {
 
   private final DocumentService documentService;
-  public DocumentsController(DocumentService documentService) {
-     this.documentService = documentService; }
 
+  public DocumentsController(DocumentService documentService) {
+     this.documentService = documentService;
+  }
+
+  @Operation(summary = "Get document by ID")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Document found"),
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequestResponse"),
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse"),
+    @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerErrorResponse")
+  })
   @GetMapping("/{id}")
   public ResponseEntity<DocumentEntity> getDocumentById(
       @Parameter(description = "Document UUID") @PathVariable String id) {
     return ResponseEntity.ok(documentService.getDocument(id));
   }
 
+  @Operation(summary = "Upload a new document")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "201", description = "Document uploaded successfully"),
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/DocumentUploadFailedResponse"),
+    @ApiResponse(responseCode = "413", ref = "#/components/responses/PayloadTooLargeResponse")
+  })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<DocumentEntity> uploadDocument(
       @Parameter(description = "File to upload", required = true) @RequestParam("file") MultipartFile file,
@@ -34,6 +56,12 @@ public class DocumentsController {
     return ResponseEntity.status(HttpStatus.CREATED).body(doc);
   }
 
+  @Operation(summary = "Update document metadata")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Document updated successfully"),
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationErrorResponse"),
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+  })
   @PatchMapping("/{id}")
   public ResponseEntity<DocumentEntity> updateDocument(
       @Parameter(description = "Document UUID") @PathVariable String id,
@@ -41,6 +69,12 @@ public class DocumentsController {
     return ResponseEntity.ok(documentService.updateDocument(id, document));
   }
 
+  @Operation(summary = "Delete a document")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "204", description = "Document deleted successfully"),
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequestResponse"),
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+  })
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteDocument(
       @Parameter(description = "Document UUID") @PathVariable String id) {
@@ -48,6 +82,13 @@ public class DocumentsController {
     return ResponseEntity.noContent().build();
   }
 
+  @Operation(summary = "Download document file")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "File downloaded successfully",
+                content = @Content(mediaType = "application/octet-stream",
+                          schema = @Schema(type = "string", format = "binary"))),
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+  })
   @GetMapping("/{id}/download")
   public ResponseEntity<byte[]> downloadDocument(
       @Parameter(description = "Document UUID") @PathVariable String id) {

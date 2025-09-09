@@ -1,15 +1,11 @@
 meta {
   name: deleteFolder
   type: http
-  seq: 3
+  seq: 5
 }
 
 delete {
-  url: {{baseUrl}}/dms/v1/folders/:id
+  url: {{baseUrl}}/dms/v1/folders/{{folderId}}
   body: none
   auth: inherit
-}
-
-params:path {
-  id: 
 }
