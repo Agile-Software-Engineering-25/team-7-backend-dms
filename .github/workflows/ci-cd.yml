@@ -3,9 +3,7 @@ name: deploy-to-k8s
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+    branches: [ main, deployment-dev ]
 
 env:
   REGISTRY: ghcr.io
