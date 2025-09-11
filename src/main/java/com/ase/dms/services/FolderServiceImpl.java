@@ -36,7 +36,7 @@ public class FolderServiceImpl implements FolderService {
     else {
       UuidValidator.validateOrThrow(id);
       folder = folders.findById(id)
-        .orElseThrow(() -> new FolderNotFoundException("Ordner nicht gefunden"));
+        .orElseThrow(() -> new FolderNotFoundException("Ordner "+ id + " nicht gefunden"));
     }
 
     List<FolderEntity> subfolders = folders.findByParentId(folder.getId());
