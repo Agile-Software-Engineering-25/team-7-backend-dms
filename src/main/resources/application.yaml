@@ -1,11 +1,11 @@
 spring:
   application:
-    name: ${SPRING_APPLICATION_NAME}
+    name: ${SPRING_APPLICATION_NAME:dms}
   jpa:
-    database-platform: ${SPRING_JPA_DATABASE_PLATFORM}
-    show-sql: ${SPRING_JPA_SHOW_SQL}
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.H2Dialect}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     properties:
       hibernate:
         format_sql: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:true}
@@ -20,9 +20,9 @@ spring:
       path: /h2-console
 
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:8080}
   error:
-    include-message: ${SERVER_ERROR_INCLUDE_MESSAGE}
+    include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:always}
   shutdown: graceful
 
 logging:

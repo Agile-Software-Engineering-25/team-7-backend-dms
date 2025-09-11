@@ -55,10 +55,28 @@ jobs:
 
   build-and-push:
     runs-on: ubuntu-latest
-    name: Deploy
+    needs: test
+    name: Build & Push Docker Image
+    permissions:
+      contents: read
+      packages: write
     steps:
-    - name: Deploy to Namespace
-      uses: Agile-Software-Engineering-25/deploy-to-k8s@v1
-      with:
-        kubeconfig: ${{ secrets.KUBECONFIG }}
-        namespace: ${{ vars.K8S_NAMESPACE }}
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Build and publish image
+        uses: Agile-Software-Engineering-25/build-and-publish-image@v1
+        with:
+          push: ${{ github.event_name != 'pull_request' }}
+          name_suffix: "-backend"  # Optional, for clarity
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    name: Deploy to K8s
+    steps:
+      - name: Deploy to Namespace
+        uses: Agile-Software-Engineering-25/deploy-to-k8s@v1
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          namespace: ${{ vars.K8S_NAMESPACE }}
