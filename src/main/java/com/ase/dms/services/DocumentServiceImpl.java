@@ -92,15 +92,19 @@ public class DocumentServiceImpl implements DocumentService {
           documents.findByFolderId(targetFolderId), targetFolderId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
+
     if (incoming.getType() != null) {
       existing.setType(incoming.getType());
     }
+
     if (incoming.getFolderId() != null) {
       existing.setFolderId(incoming.getFolderId());
     }
+
     if (incoming.getOwnerId() != null) {
       existing.setOwnerId(incoming.getOwnerId());
     }
+
     return documents.save(existing);
   }
 
