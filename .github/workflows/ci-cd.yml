@@ -65,7 +65,6 @@ jobs:
         uses: Agile-Software-Engineering-25/build-and-publish-image@v1
         with:
           push: ${{ github.event_name != 'pull_request' }}
-          name_suffix: "-backend"  # Optional, for clarity
 
   deploy:
     runs-on: ubuntu-latest

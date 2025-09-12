@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: dms
-        image: ghcr.io/agile-software-engineering-25/team-7-backend-dms-backend:latest
+        image: ghcr.io/agile-software-engineering-25/team-7-backend-dms:latest
         ports:
         - containerPort: 8080
         env:
