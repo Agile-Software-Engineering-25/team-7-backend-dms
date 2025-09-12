@@ -27,7 +27,7 @@ jobs:
     - name: Cache Maven dependencies
       uses: actions/cache@v4
       with:
-        path: ~/.m2
+        path: ~/.m2/repository
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-m2-
@@ -76,4 +76,4 @@ jobs:
         uses: Agile-Software-Engineering-25/deploy-to-k8s@v1
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
-          namespace: ${{ vars.K8S_NAMESPACE }}
+          namespace: ${{ vars.NAMESPACE }}
