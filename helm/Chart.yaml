@@ -1,0 +1,6 @@
+# Helm Chart für flexiblere Deployments
+apiVersion: v1
+name: dms
+description: Document Management System Helm Chart
+version: 0.1.0
+appVersion: "1.0.0"

@@ -14,16 +14,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Service implementation for document management.
+ */
 @Service
 public class DocumentServiceImpl implements DocumentService {
 
   private final DocumentRepository documents;
 
+  /**
+   * Constructor for DocumentServiceImpl.
+   * @param documents the document repository
+   */
   public DocumentServiceImpl(DocumentRepository documents) {
     this.documents = documents;
   }
 
-  @Override @Transactional
+  /**
+   * Create a new document in the given folder.
+   * @param file the file to upload
+   * @param folderId the target folder UUID
+   * @return the created DocumentEntity
+   */
+  @Override
+  @Transactional
   public DocumentEntity createDocument(MultipartFile file, String folderId) {
     UuidValidator.validateOrThrow(folderId);
     try {
@@ -38,14 +52,20 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
       doc.setCreatedDate(LocalDateTime.now());
       doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
-      doc.setData(file.getBytes()); // Dateiinhalt speichern
+      doc.setData(file.getBytes());
       return documents.save(doc);
     }
-     catch (Exception e) {
-      throw new DocumentUploadException("Failed to process uploaded file: " + file.getOriginalFilename(), e);
+    catch (Exception e) {
+      throw new DocumentUploadException(
+          "Failed to process uploaded file: " + file.getOriginalFilename(), e);
     }
   }
 
+  /**
+   * Get a document by its ID.
+   * @param id the document UUID
+   * @return the DocumentEntity
+   */
   @Override
   public DocumentEntity getDocument(String id) {
     UuidValidator.validateOrThrow(id);
@@ -53,14 +73,21 @@ public class DocumentServiceImpl implements DocumentService {
       .orElseThrow(() -> new DocumentNotFoundException(id));
   }
 
-  @Override @Transactional
+  /**
+   * Update a document's metadata.
+   * @param id the document UUID
+   * @param incoming the new document data
+   * @return the updated DocumentEntity
+   */
+  @Override
+  @Transactional
   public DocumentEntity updateDocument(String id, DocumentEntity incoming) {
     UuidValidator.validateOrThrow(id);
     DocumentEntity existing = getDocument(id);
-
     if (incoming.getName() != null) {
-      // Bei Ordnerwechsel den neuen Ordner für Namenskonflikt-Prüfung verwenden
-      String targetFolderId = incoming.getFolderId() != null ? incoming.getFolderId() : existing.getFolderId();
+      String targetFolderId = incoming.getFolderId() != null
+          ? incoming.getFolderId()
+          : existing.getFolderId();
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
           documents.findByFolderId(targetFolderId), targetFolderId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
@@ -81,10 +108,15 @@ public class DocumentServiceImpl implements DocumentService {
     return documents.save(existing);
   }
 
-  @Override @Transactional
+  /**
+   * Delete a document by its ID.
+   * @param id the document UUID
+   */
+  @Override
+  @Transactional
   public void deleteDocument(String id) {
     UuidValidator.validateOrThrow(id);
-    if (!documents.existsById(id)){
+    if (!documents.existsById(id)) {
       throw new DocumentNotFoundException(id);
     }
     documents.deleteById(id);
