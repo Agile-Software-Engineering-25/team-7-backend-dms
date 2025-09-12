@@ -7,5 +7,5 @@ resources:
 
 # Image transformations (optional - can be used to override image tags)
 images:
-  - name: ghcr.io/agile-software-engineering-25/team-7-backend-dms
+  - name: ghcr.io/agile-software-engineering-25/team-7-backend-dms-backend
     newTag: latest

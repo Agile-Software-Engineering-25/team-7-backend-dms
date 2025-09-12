@@ -54,7 +54,8 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
       doc.setData(file.getBytes());
       return documents.save(doc);
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       throw new DocumentUploadException(
           "Failed to process uploaded file: " + file.getOriginalFilename(), e);
     }
