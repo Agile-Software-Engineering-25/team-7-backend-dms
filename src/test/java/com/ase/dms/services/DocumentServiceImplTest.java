@@ -225,7 +225,9 @@ class DocumentServiceImplTest {
     service.deleteDocument("4111b676-474c-4014-a7ee-53fc5cb90127");
 
     // Assert: getDocument auf gelöschte ID wirft Exception
-    RuntimeException exception = assertThrows(RuntimeException.class, () -> service.getDocument("4111b676-474c-4014-a7ee-53fc5cb90127"));
+    RuntimeException exception = assertThrows(RuntimeException.class, () ->
+        service.getDocument("4111b676-474c-4014-a7ee-53fc5cb90127")
+    );
     assertTrue(exception.getMessage().contains("4111b676-474c-4014-a7ee-53fc5cb90127"));
 
     verify(documentRepository).deleteById("4111b676-474c-4014-a7ee-53fc5cb90127");

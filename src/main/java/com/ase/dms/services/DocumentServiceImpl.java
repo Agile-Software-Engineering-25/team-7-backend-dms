@@ -84,8 +84,9 @@ public class DocumentServiceImpl implements DocumentService {
     UuidValidator.validateOrThrow(id);
     DocumentEntity existing = getDocument(id);
     if (incoming.getName() != null) {
-      String targetFolderId = incoming.getFolderId() != null ?
-          incoming.getFolderId() : existing.getFolderId();
+      String targetFolderId = incoming.getFolderId() != null
+          ? incoming.getFolderId()
+          : existing.getFolderId();
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
           documents.findByFolderId(targetFolderId), targetFolderId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));

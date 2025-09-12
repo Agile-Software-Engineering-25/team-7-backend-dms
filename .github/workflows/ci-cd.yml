@@ -76,4 +76,4 @@ jobs:
         uses: Agile-Software-Engineering-25/deploy-to-k8s@v1
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
-          namespace: ${{ vars.NAMESPACE }}
+          namespace: ${{ secrets.NAMESPACE }}
