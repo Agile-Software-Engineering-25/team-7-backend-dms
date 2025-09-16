@@ -23,25 +23,7 @@ spec:
         ports:
         - containerPort: 8080
         env:
-        # Database Configuration for Team 7
-        - name: DB_HOST
-          value: postgres.db
-        - name: DB_PORT
-          value: "5432"
-        - name: DB_NAME
-          value: appdb
-        - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: backend
-              key: POSTGRES_USER
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: backend
-              key: POSTGRES_PASSWORD
-        - name: SPRING_DATASOURCE_URL
-          value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+        # Database Configuration for Team 7 - credentials only
         - name: SPRING_DATASOURCE_USERNAME
           valueFrom:
             secretKeyRef:
@@ -52,6 +34,8 @@ spec:
             secretKeyRef:
               name: backend
               key: POSTGRES_PASSWORD
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
         - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
           value: "org.postgresql.Driver"
 
@@ -71,9 +55,9 @@ spec:
           httpGet:
             path: /actuator/health/liveness
             port: 8080
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 30
-          timeoutSeconds: 5
+          timeoutSeconds: 10
           failureThreshold: 3
 
         readinessProbe:
@@ -82,7 +66,7 @@ spec:
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
-          timeoutSeconds: 3
+          timeoutSeconds: 5
           failureThreshold: 3
 
         securityContext:
