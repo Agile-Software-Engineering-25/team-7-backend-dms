@@ -38,33 +38,34 @@ class DocumentServiceImplTest {
   void testGetDocument_existingId_returnsDocument() {
     // Arrange: baue ein Dokument mit SETTERN (inkl. data)
     DocumentEntity doc = new DocumentEntity();
-    doc.setId("test-id");
+    doc.setId("4111b676-474c-4014-a7ee-53fc5cb90127");
     doc.setName("dummy.txt");
     doc.setType("text/plain");
     doc.setSize(SIZE_1_KB);
-    doc.setFolderId("folder-1");
+    doc.setFolderId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
     doc.setOwnerId("owner-id");
     doc.setCreatedDate(LocalDateTime.now());
-    doc.setDownloadUrl("/dms/v1/documents/test-id/download");
+    doc.setDownloadUrl("/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download");
     doc.setData(new byte[0]);
 
-    when(documentRepository.findById("test-id")).thenReturn(Optional.of(doc));
+    when(documentRepository.findById("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(doc));
 
     // Act
-    DocumentEntity result = service.getDocument("test-id");
+    DocumentEntity result = service.getDocument("4111b676-474c-4014-a7ee-53fc5cb90127");
 
     // Assert
     assertNotNull(result);
     assertEquals("dummy.txt", result.getName());
-    assertEquals("test-id", result.getId());
+    assertEquals("4111b676-474c-4014-a7ee-53fc5cb90127", result.getId());
   }
 
   @Test
   void testGetDocument_nonExistingId_throwsException() {
-    when(documentRepository.findById("non-existing-id")).thenReturn(Optional.empty());
+    String nonExistingId = "12345678-1234-1234-1234-1234567890ab";
+    when(documentRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
-    Exception exception = assertThrows(RuntimeException.class, () -> service.getDocument("non-existing-id"));
-    assertTrue(exception.getMessage().contains("Dokument nicht gefunden"));
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> service.getDocument(nonExistingId));
+    assertTrue(exception.getMessage().contains(nonExistingId));
   }
 
   @Test
@@ -78,7 +79,7 @@ class DocumentServiceImplTest {
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
     // Act
-    DocumentEntity created = service.createDocument(file, "folder-123");
+    DocumentEntity created = service.createDocument(file, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
 
     // Damit der folgende getDocument()-Aufruf klappt, stubben wir findById() mit der neuen ID:
     when(documentRepository.findById(created.getId())).thenReturn(Optional.of(created));
@@ -86,9 +87,8 @@ class DocumentServiceImplTest {
     // Assert
     assertNotNull(created);
     assertEquals("testfile.txt", created.getName());
-    assertEquals("folder-123", created.getFolderId());
+    assertEquals("f1e1b676-474c-4014-a7ee-53fc5cb90127", created.getFolderId());
     assertEquals("text/plain", created.getType());
-
 
     assertNotNull(service.getDocument(created.getId()));
   }
@@ -105,7 +105,7 @@ class DocumentServiceImplTest {
       "conflict.txt",
       "text/plain",
       "Hello".getBytes());
-    DocumentEntity doc1 = service.createDocument(file1, "folder-1");
+    DocumentEntity doc1 = service.createDocument(file1, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("conflict.txt", doc1.getName());
 
     // Zweites Dokument: findByFolderId()() gibt doc1 zurück
@@ -116,7 +116,7 @@ class DocumentServiceImplTest {
       "conflict.txt",
       "text/plain",
       "World".getBytes());
-    DocumentEntity doc2 = service.createDocument(file2, "folder-1");
+    DocumentEntity doc2 = service.createDocument(file2, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("conflict (1).txt", doc2.getName());
 
     // Drittes Dokument: findByFolderId()() gibt doc1 und doc2 zurück
@@ -127,7 +127,7 @@ class DocumentServiceImplTest {
       "conflict.txt",
       "text/plain",
       "Again".getBytes());
-    DocumentEntity doc3 = service.createDocument(file3, "folder-1");
+    DocumentEntity doc3 = service.createDocument(file3, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("conflict (2).txt", doc3.getName());
   }
 
@@ -142,7 +142,7 @@ class DocumentServiceImplTest {
       "update.txt",
       "text/plain",
       "Hello".getBytes());
-    DocumentEntity doc1 = service.createDocument(file1, "folder-2");
+    DocumentEntity doc1 = service.createDocument(file1, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
 
   // Zweites Dokument: doc1 ist bereits vorhanden
   when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1));
@@ -152,14 +152,14 @@ class DocumentServiceImplTest {
       "update.txt",
       "text/plain",
       "World".getBytes());
-    DocumentEntity doc2 = service.createDocument(file2, "folder-2");
+    DocumentEntity doc2 = service.createDocument(file2, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("update (1).txt", doc2.getName());
 
   // Mock für findById() für updateDocument()
   when(documentRepository.findById(any())).thenReturn(Optional.of(doc1));
 
   // Update: beide Dokumente sind vorhanden
-  when(documentRepository.findByFolderId("folder-2")).thenReturn(List.of(doc1, doc2));
+  when(documentRepository.findByFolderId("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(doc1, doc2));
     doc1.setName("update (1).txt");
     DocumentEntity updated = service.updateDocument(doc1.getId(), doc1);
     assertEquals("update (1) (1).txt", updated.getName());
@@ -169,17 +169,17 @@ class DocumentServiceImplTest {
   void testUpdateDocument_updatesDocumentSuccessfully() {
     // Arrange: vorhandenes Dokument
     DocumentEntity original = new DocumentEntity();
-    original.setId("test-id");
+    original.setId("4111b676-474c-4014-a7ee-53fc5cb90127");
     original.setName("dummy.txt");
     original.setType("text/plain");
     original.setSize(SIZE_100_B);
-    original.setFolderId("folder-1");
+    original.setFolderId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
     original.setOwnerId("owner-id");
     original.setCreatedDate(LocalDateTime.now());
-    original.setDownloadUrl("/dms/v1/documents/test-id/download");
+    original.setDownloadUrl("/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download");
     original.setData(new byte[0]);
 
-    when(documentRepository.findById("test-id")).thenReturn(Optional.of(original));
+    when(documentRepository.findById("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(original));
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
     // Update-Objekt nur mit geänderten Feldern
@@ -187,54 +187,58 @@ class DocumentServiceImplTest {
     updated.setName("updated.txt");
 
     // Act
-    DocumentEntity result = service.updateDocument("test-id", updated);
+    DocumentEntity result = service.updateDocument("4111b676-474c-4014-a7ee-53fc5cb90127", updated);
 
     // Assert
     assertEquals("updated.txt", result.getName());
-    assertEquals("test-id", result.getId());
+    assertEquals("4111b676-474c-4014-a7ee-53fc5cb90127", result.getId());
   }
 
   @Test
   void testUpdateDocument_nonExistingId_throwsException() {
-    when(documentRepository.findById("non-id")).thenReturn(Optional.empty());
+    String nonId = "12345678-1234-1234-1234-1234567890ab";
+    when(documentRepository.findById(nonId)).thenReturn(Optional.empty());
 
     DocumentEntity dummy = new DocumentEntity();
-    dummy.setId("non-id");
+    dummy.setId(nonId);
     dummy.setName("dummy.txt");
     dummy.setType("text/plain");
     dummy.setSize(1L);
-    dummy.setFolderId("folder");
+    dummy.setFolderId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
     dummy.setOwnerId("owner");
     dummy.setCreatedDate(LocalDateTime.now());
     dummy.setDownloadUrl("url");
     dummy.setData(new byte[0]);
 
-    Exception exception = assertThrows(RuntimeException.class, () -> service.updateDocument("non-id", dummy));
-    assertTrue(exception.getMessage().contains("Dokument nicht gefunden"));
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> service.updateDocument(nonId, dummy));
+    assertTrue(exception.getMessage().contains(nonId));
   }
 
   @Test
   void testDeleteDocument_deletesDocumentSuccessfully() {
     // existsById -> true, damit Delete erlaubt ist
-    when(documentRepository.existsById("test-id")).thenReturn(true);
+    when(documentRepository.existsById("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(true);
     // Nach dem Löschen simulieren wir "nicht mehr vorhanden"
-    when(documentRepository.findById("test-id")).thenReturn(Optional.empty());
+    when(documentRepository.findById("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.empty());
 
     // Act
-    service.deleteDocument("test-id");
+    service.deleteDocument("4111b676-474c-4014-a7ee-53fc5cb90127");
 
     // Assert: getDocument auf gelöschte ID wirft Exception
-    Exception exception = assertThrows(RuntimeException.class, () -> service.getDocument("test-id"));
-    assertTrue(exception.getMessage().contains("Dokument nicht gefunden"));
+    RuntimeException exception = assertThrows(RuntimeException.class, () ->
+        service.getDocument("4111b676-474c-4014-a7ee-53fc5cb90127")
+    );
+    assertTrue(exception.getMessage().contains("4111b676-474c-4014-a7ee-53fc5cb90127"));
 
-    verify(documentRepository).deleteById("test-id");
+    verify(documentRepository).deleteById("4111b676-474c-4014-a7ee-53fc5cb90127");
   }
 
   @Test
   void testDeleteDocument_nonExistingId_throwsException() {
-    when(documentRepository.existsById("non-existing-id")).thenReturn(false);
+    String nonExistingId = "12345678-1234-1234-1234-1234567890ab";
+    when(documentRepository.existsById(nonExistingId)).thenReturn(false);
 
-    Exception exception = assertThrows(RuntimeException.class, () -> service.deleteDocument("non-existing-id"));
-    assertTrue(exception.getMessage().contains("Dokument nicht gefunden"));
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> service.deleteDocument(nonExistingId));
+    assertTrue(exception.getMessage().contains(nonExistingId));
   }
 }
