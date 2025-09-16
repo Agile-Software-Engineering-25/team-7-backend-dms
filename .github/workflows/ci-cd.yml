@@ -4,8 +4,6 @@ name: deploy-to-k8s
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 env:
   REGISTRY: ghcr.io
@@ -65,8 +63,6 @@ jobs:
 
       - name: Build and publish image
         uses: Agile-Software-Engineering-25/build-and-publish-image@v1
-        with:
-          push: ${{ github.event_name != 'pull_request' }}
 
   deploy:
     runs-on: ubuntu-latest
