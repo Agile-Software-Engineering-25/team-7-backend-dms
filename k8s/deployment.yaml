@@ -8,6 +8,11 @@ metadata:
     team: "7"
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   selector:
     matchLabels:
       app: dms
@@ -16,10 +21,14 @@ spec:
       labels:
         app: dms
         team: "7"
+      annotations:
+        # Force pod restart when image changes (even with same tag)
+        rollme: "{{ .Values.forceRestart | default now }}"
     spec:
       containers:
       - name: dms
         image: ghcr.io/agile-software-engineering-25/team-7-backend-dms:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         env:
@@ -78,3 +87,9 @@ spec:
           capabilities:
             drop:
             - ALL
+
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+
+      terminationGracePeriodSeconds: 30

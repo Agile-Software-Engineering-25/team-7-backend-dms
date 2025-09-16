@@ -31,6 +31,3 @@ logging:
     com.ase.dms: ${LOGGING_LEVEL_COM_ASE_DMS:DEBUG}
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
-
-  file:
-    name: logs/dms-application.log
