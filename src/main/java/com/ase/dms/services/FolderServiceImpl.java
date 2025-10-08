@@ -3,7 +3,9 @@ package com.ase.dms.services;
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.exceptions.ErrorCodes;
 import com.ase.dms.exceptions.FolderNotFoundException;
+import com.ase.dms.exceptions.ValidationException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
@@ -75,8 +77,11 @@ public class FolderServiceImpl implements FolderService {
         .orElseThrow(() -> new FolderNotFoundException(folder.getParentId()));
     folder.setId(UUID.randomUUID().toString());
     folder.setCreatedDate(LocalDateTime.now());
+
+    // Get siblings for name conflict resolution
+    List<FolderEntity> siblings = folders.findByParentId(folder.getParentId());
     Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-        folders.findByParentId(folder.getParentId()), folder.getParentId(), null);
+        siblings, folder.getParentId(), null);
     String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
     folder.setName(uniqueName);
     return folders.save(folder);
@@ -95,11 +100,11 @@ public class FolderServiceImpl implements FolderService {
     FolderEntity existing = folders.findById(id)
         .orElseThrow(() -> new FolderNotFoundException(id));
 
-    if (incoming.getParentId() != null) {
+    if (incoming.getParentId() != null && !incoming.getParentId().equals(existing.getParentId())) {
       UuidValidator.validateOrThrow(incoming.getParentId());
-      FolderEntity parent = folders.findById(incoming.getParentId())
+      folders.findById(incoming.getParentId())
           .orElseThrow(() -> new FolderNotFoundException(incoming.getParentId()));
-      existing.setParentId(parent.getId());
+      existing.setParentId(incoming.getParentId());
     }
 
     if (incoming.getName() != null) {
@@ -113,8 +118,9 @@ public class FolderServiceImpl implements FolderService {
   }
 
   /**
-   * Deletes a folder by ID.
+   * Deletes a folder by ID with protection against deleting non-empty folders.
    * @param id the folder UUID
+   * @throws ValidationException if folder contains subfolders or documents
    */
   @Override
   @Transactional
@@ -123,6 +129,20 @@ public class FolderServiceImpl implements FolderService {
     if (!folders.existsById(id)) {
       throw new FolderNotFoundException(id);
     }
+
+    List<FolderEntity> subfolders = folders.findByParentId(id);
+    if (!subfolders.isEmpty()) {
+      throw new ValidationException(ErrorCodes.VAL_CHILDREN_FOLDER,
+          "Cannot delete folder: contains " + subfolders.size() + " subfolder(s). Please delete or move all subfolders first.");
+    }
+
+    List<DocumentEntity> documents = this.documents.findByFolderId(id);
+    if (!documents.isEmpty()) {
+      throw new ValidationException(ErrorCodes.FOLDER_NOT_EMPTY,
+          "Cannot delete folder: contains " + documents.size() + " document(s). Please delete or move all documents first.");
+    }
+
+    // Folder is empty, safe to delete
     folders.deleteById(id);
   }
 }
