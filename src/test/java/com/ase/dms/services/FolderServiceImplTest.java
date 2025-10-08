@@ -4,7 +4,6 @@ import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.exceptions.FolderNotFoundException;
-import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
 
 import java.time.LocalDateTime;
@@ -29,14 +28,11 @@ class FolderServiceImplTest {
   @Mock
   private FolderRepository folderRepository;
 
-  @Mock
-  private DocumentRepository documentRepository;
-
-  private FolderServiceImpl folderService; // <— DIESE Variable fehlte dir
+  private FolderServiceImpl folderService;
 
   @BeforeEach
   void setUp() {
-    folderService = new FolderServiceImpl(folderRepository, documentRepository);
+    folderService = new FolderServiceImpl(folderRepository);
   }
 
   @Test
@@ -66,8 +62,7 @@ class FolderServiceImplTest {
     doc.setData(new byte[0]);
 
     when(folderRepository.findById("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(folder));
-    when(folderRepository.findByParentId("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(sub));
-    when(documentRepository.findByFolderId("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(doc));
+    //when(folderRepository.findByParentId("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(sub));
 
     // Act
     FolderResponseDTO dto = folderService.getFolderContents("4111b676-474c-4014-a7ee-53fc5cb90127");
@@ -104,12 +99,11 @@ class FolderServiceImplTest {
     FolderEntity rootFolder = new FolderEntity();
     rootFolder.setId("00000000-0000-0000-0000-000000000000");
     rootFolder.setName("root");
-    rootFolder.setParentId(null);
+    rootFolder.setParent(null);
     rootFolder.setCreatedDate(LocalDateTime.now());
 
-    when(folderRepository.findByNameAndParentIdIsNull("root")).thenReturn(Optional.of(rootFolder));
-    when(folderRepository.findByParentId("00000000-0000-0000-0000-000000000000")).thenReturn(List.of());
-    when(documentRepository.findByFolderId("00000000-0000-0000-0000-000000000000")).thenReturn(List.of());
+    when(folderRepository.findByNameAndParentIsNull("root")).thenReturn(Optional.of(rootFolder));
+    //when(folderRepository.findByParentId("00000000-0000-0000-0000-000000000000")).thenReturn(List.of());
 
     FolderResponseDTO response = folderService.getFolderContents("root");
     assertNotNull(response);

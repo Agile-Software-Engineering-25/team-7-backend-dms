@@ -1,10 +1,13 @@
 package com.ase.dms.services;
 
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.exceptions.DocumentNotFoundException;
 import com.ase.dms.exceptions.DocumentUploadException;
+import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.repositories.DocumentRepository;
+import com.ase.dms.repositories.FolderRepository;
 import com.ase.dms.helpers.UuidValidator;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,13 +24,16 @@ import org.springframework.web.multipart.MultipartFile;
 public class DocumentServiceImpl implements DocumentService {
 
   private final DocumentRepository documents;
+  private final FolderRepository folders;
 
   /**
    * Constructor for DocumentServiceImpl.
    * @param documents the document repository
+   * @param folders the folder repository
    */
-  public DocumentServiceImpl(DocumentRepository documents) {
+  public DocumentServiceImpl(DocumentRepository documents, FolderRepository folders) {
     this.documents = documents;
+    this.folders = folders;
   }
 
   /**
@@ -40,19 +46,30 @@ public class DocumentServiceImpl implements DocumentService {
   @Transactional
   public DocumentEntity createDocument(MultipartFile file, String folderId) {
     UuidValidator.validateOrThrow(folderId);
+
+    // Validate that folder exists and load it for relationship
+    FolderEntity folder = folders.findById(folderId)
+        .orElseThrow(() -> new FolderNotFoundException(folderId));
+
     try {
       DocumentEntity doc = new DocumentEntity();
       doc.setId(UUID.randomUUID().toString());
-      List<DocumentEntity> siblings = documents.findByFolderId(folderId);
+
+      // Set the folder relationship directly - cleaner approach
+      doc.setFolder(folder);
+
+      // Get siblings using JPA relationship
+      List<DocumentEntity> siblings = folder.getDocuments();
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(siblings, folderId, null);
+
       doc.setName(NameIncrementHelper.getIncrementedName(file.getOriginalFilename(), siblingNames));
       doc.setType(file.getContentType());
       doc.setSize(file.getSize());
-      doc.setFolderId(folderId);
       doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
       doc.setCreatedDate(LocalDateTime.now());
       doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
       doc.setData(file.getBytes());
+
       return documents.save(doc);
     }
     catch (Exception e) {
@@ -84,12 +101,18 @@ public class DocumentServiceImpl implements DocumentService {
   public DocumentEntity updateDocument(String id, DocumentEntity incoming) {
     UuidValidator.validateOrThrow(id);
     DocumentEntity existing = getDocument(id);
+
     if (incoming.getName() != null) {
       String targetFolderId = incoming.getFolderId() != null
           ? incoming.getFolderId()
           : existing.getFolderId();
+
+      // Validate folder exists and get siblings via JPA relationship
+      FolderEntity targetFolder = folders.findById(targetFolderId)
+          .orElseThrow(() -> new FolderNotFoundException(targetFolderId));
+
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-          documents.findByFolderId(targetFolderId), targetFolderId, existing.getId());
+          targetFolder.getDocuments(), targetFolderId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
 
@@ -98,7 +121,10 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     if (incoming.getFolderId() != null) {
-      existing.setFolderId(incoming.getFolderId());
+      // Load the new folder and set the relationship directly
+      FolderEntity newFolder = folders.findById(incoming.getFolderId())
+          .orElseThrow(() -> new FolderNotFoundException(incoming.getFolderId()));
+      existing.setFolder(newFolder);
     }
 
     if (incoming.getOwnerId() != null) {

@@ -27,11 +27,14 @@ class DocumentServiceImplTest {
   @Mock
   private com.ase.dms.repositories.DocumentRepository documentRepository;
 
+  @Mock
+  private com.ase.dms.repositories.FolderRepository folderRepository;
+
   private DocumentServiceImpl service;
 
   @BeforeEach
   void setUp() {
-    service = new DocumentServiceImpl(documentRepository);
+    service = new DocumentServiceImpl(documentRepository, folderRepository);
   }
 
   @Test
@@ -135,7 +138,7 @@ class DocumentServiceImplTest {
   void testUpdateDocument_withNameConflict_incrementsName() {
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
   // Erstes Dokument: keine vorhandenen Dokumente
-  when(documentRepository.findByFolderId(any())).thenReturn(List.of());
+//  when(documentRepository.findByFolderId(any())).thenReturn(List.of());
 
     MockMultipartFile file1 = new MockMultipartFile(
       "file",
@@ -145,7 +148,7 @@ class DocumentServiceImplTest {
     DocumentEntity doc1 = service.createDocument(file1, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
 
   // Zweites Dokument: doc1 ist bereits vorhanden
-  when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1));
+//  when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1));
 
     MockMultipartFile file2 = new MockMultipartFile(
       "file",
@@ -159,7 +162,7 @@ class DocumentServiceImplTest {
   when(documentRepository.findById(any())).thenReturn(Optional.of(doc1));
 
   // Update: beide Dokumente sind vorhanden
-  when(documentRepository.findByFolderId("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(doc1, doc2));
+//  when(documentRepository.findByFolderId("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(doc1, doc2));
     doc1.setName("update (1).txt");
     DocumentEntity updated = service.updateDocument(doc1.getId(), doc1);
     assertEquals("update (1) (1).txt", updated.getName());

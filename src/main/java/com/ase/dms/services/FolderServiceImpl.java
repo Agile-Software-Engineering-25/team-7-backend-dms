@@ -3,9 +3,7 @@ package com.ase.dms.services;
 import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.entities.DocumentEntity;
-import com.ase.dms.exceptions.ErrorCodes;
 import com.ase.dms.exceptions.FolderNotFoundException;
-import com.ase.dms.exceptions.ValidationException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
@@ -28,16 +26,14 @@ public class FolderServiceImpl implements FolderService {
   private static final String ROOT_ID = "root";
 
   private final FolderRepository folders;
-  private final DocumentRepository documents;
 
   /**
    * Constructor for FolderServiceImpl.
    * @param folders the folder repository
    * @param documents the document repository
    */
-  public FolderServiceImpl(final FolderRepository folders, final DocumentRepository documents) {
+  public FolderServiceImpl(final FolderRepository folders) {
     this.folders = folders;
-    this.documents = documents;
   }
 
   /**
@@ -49,7 +45,7 @@ public class FolderServiceImpl implements FolderService {
   public FolderResponseDTO getFolderContents(final String id) {
     FolderEntity folder;
     if (ROOT_ID.equals(id)) {
-      folder = folders.findByNameAndParentIdIsNull(ROOT_ID)
+      folder = folders.findByNameAndParentIsNull(ROOT_ID)
         .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
     }
     else {
@@ -58,8 +54,9 @@ public class FolderServiceImpl implements FolderService {
         .orElseThrow(() -> new FolderNotFoundException("Ordner "+ id + " nicht gefunden"));
     }
 
-    List<FolderEntity> subfolders = folders.findByParentId(folder.getId());
-    List<DocumentEntity> docs = documents.findByFolderId(folder.getId());
+    // Use JPA relationships to get subfolders and documents
+    List<FolderEntity> subfolders = folder.getSubfolders();
+    List<DocumentEntity> docs = folder.getDocuments();
 
     return new FolderResponseDTO(folder, subfolders, docs);
   }
@@ -73,13 +70,18 @@ public class FolderServiceImpl implements FolderService {
   @Transactional
   public FolderEntity createFolder(final FolderEntity folder) {
     UuidValidator.validateOrThrow(folder.getParentId());
-    folders.findById(folder.getParentId())
+    // Load the parent folder and set the relationship directly
+    FolderEntity parent = folders.findById(folder.getParentId())
         .orElseThrow(() -> new FolderNotFoundException(folder.getParentId()));
+
     folder.setId(UUID.randomUUID().toString());
     folder.setCreatedDate(LocalDateTime.now());
 
-    // Get siblings for name conflict resolution
-    List<FolderEntity> siblings = folders.findByParentId(folder.getParentId());
+    // Set the parent relationship directly - cleaner approach
+    folder.setParent(parent);
+
+    // Get siblings for name conflict resolution using JPA relationship
+    List<FolderEntity> siblings = parent.getSubfolders();
     Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
         siblings, folder.getParentId(), null);
     String uniqueName = NameIncrementHelper.getIncrementedName(folder.getName(), siblingNames);
@@ -102,25 +104,29 @@ public class FolderServiceImpl implements FolderService {
 
     if (incoming.getParentId() != null && !incoming.getParentId().equals(existing.getParentId())) {
       UuidValidator.validateOrThrow(incoming.getParentId());
-      folders.findById(incoming.getParentId())
+      FolderEntity newParent = folders.findById(incoming.getParentId())
           .orElseThrow(() -> new FolderNotFoundException(incoming.getParentId()));
-      existing.setParentId(incoming.getParentId());
+      // Set the parent relationship directly
+      existing.setParent(newParent);
     }
 
     if (incoming.getName() != null) {
       // Bei Parent-Wechsel den neuen Parent für Namenskonflikt-Prüfung verwenden
       String targetParentId = incoming.getParentId() != null ? incoming.getParentId() : existing.getParentId();
+      FolderEntity targetParent = folders.findById(targetParentId)
+          .orElseThrow(() -> new FolderNotFoundException(targetParentId));
+
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(
-          folders.findByParentId(targetParentId), targetParentId, existing.getId());
+          targetParent.getSubfolders(), targetParentId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
     return folders.save(existing);
   }
 
   /**
-   * Deletes a folder by ID with protection against deleting non-empty folders.
+   * Deletes a folder by ID with JPA cascade handling.
+   * JPA will automatically delete all subfolders and documents due to cascade configuration.
    * @param id the folder UUID
-   * @throws ValidationException if folder contains subfolders or documents
    */
   @Override
   @Transactional
@@ -130,19 +136,8 @@ public class FolderServiceImpl implements FolderService {
       throw new FolderNotFoundException(id);
     }
 
-    List<FolderEntity> subfolders = folders.findByParentId(id);
-    if (!subfolders.isEmpty()) {
-      throw new ValidationException(ErrorCodes.VAL_CHILDREN_FOLDER,
-          "Cannot delete folder: contains " + subfolders.size() + " subfolder(s). Please delete or move all subfolders first.");
-    }
-
-    List<DocumentEntity> documents = this.documents.findByFolderId(id);
-    if (!documents.isEmpty()) {
-      throw new ValidationException(ErrorCodes.FOLDER_NOT_EMPTY,
-          "Cannot delete folder: contains " + documents.size() + " document(s). Please delete or move all documents first.");
-    }
-
-    // Folder is empty, safe to delete
+    // With JPA cascade operations, deleting the folder will automatically
+    // delete all subfolders and documents - no warnings
     folders.deleteById(id);
   }
 }

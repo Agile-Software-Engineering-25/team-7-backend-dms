@@ -1,19 +1,22 @@
 package com.ase.dms.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-@Data @Entity @NoArgsConstructor @AllArgsConstructor
+@Data
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "document_entity")
 public class DocumentEntity {
   @Id
   @Schema(accessMode = Schema.AccessMode.READ_ONLY,
@@ -33,9 +36,6 @@ public class DocumentEntity {
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateigröße in Bytes")
   private long size;
 
-  @Schema(description = "ID des übergeordneten Ordners als uuid", example = "ef9b2274-817e-4cba-879e-383548577f4e")
-  private String folderId;
-
   @Schema(description = "ID des Besitzers (User) des Dokuments")
   private String ownerId;
 
@@ -52,4 +52,25 @@ public class DocumentEntity {
   @Column(columnDefinition = "VARBINARY")
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateiinhalt")
   private byte[] data;
+
+  // JPA Relationship
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "folderId")
+  @JsonIgnore
+  @ToString.Exclude
+  @Schema(description = "ID des übergeordneten Ordners als JPA Reference", example = "ef9b2274-817e-4cba-879e-383548577f4e")
+  private FolderEntity folder;
+
+  public String getFolderId() {
+    return folder != null ? folder.getId() : null;
+  }
+
+  public void setFolderId(String folderId) {
+    if (folderId != null) {
+      this.folder = new FolderEntity();
+      this.folder.setId(folderId);
+    } else {
+      this.folder = null;
+    }
+  }
 }
