@@ -9,16 +9,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "document_entity")
 public class DocumentEntity {
   @Id
+  @EqualsAndHashCode.Include
   @Schema(accessMode = Schema.AccessMode.READ_ONLY,
       description = "Eindeutige ID des Dokuments",
       example = "4111b676-474c-4014-a7ee-53fc5cb90127")

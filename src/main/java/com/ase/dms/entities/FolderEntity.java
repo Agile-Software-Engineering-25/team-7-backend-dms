@@ -12,16 +12,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "folder_entity")
 public class FolderEntity {
   @Id
+  @EqualsAndHashCode.Include
   @Schema(accessMode = Schema.AccessMode.READ_ONLY,
       description = "Eindeutige ID des Ordners",
       example = "03d3d491-1fa7-437f-b617-698a4d4c9d84")
