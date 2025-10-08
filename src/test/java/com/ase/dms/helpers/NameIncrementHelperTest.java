@@ -28,40 +28,92 @@ class NameIncrementHelperTest {
     assertEquals("file (3)", result);
   }
 
-//  @Test
-//  void testCollectSiblingNames_folders() {
-//    FolderEntity f1 = new FolderEntity("1", "A", "root", LocalDateTime.now());
-//    FolderEntity f2 = new FolderEntity("2", "B", "root", LocalDateTime.now());
-//    FolderEntity f3 = new FolderEntity("3", "C", "other", LocalDateTime.now());
-//    List<FolderEntity> folders = Arrays.asList(f1, f2, f3);
-//    Set<String> names = NameIncrementHelper.collectSiblingNames(folders, "root", null);
-//    assertTrue(names.contains("A"));
-//    assertTrue(names.contains("B"));
-//    assertFalse(names.contains("C"));
-//  }
+  @Test
+  void testCollectSiblingNames_folders() {
+    FolderEntity f1 = new FolderEntity();
+    f1.setId("1");
+    f1.setName("A");
+    f1.setParentId("root");
+    f1.setCreatedDate(LocalDateTime.now());
 
-//  @Test
-//  void testCollectSiblingNames_documents() {
-//    DocumentEntity d1 = new DocumentEntity(
-//        "1", "doc.txt", "text/plain", TEST_SIZE, "folder1", "owner", LocalDateTime.now(), "url", new byte[0]);
-//    DocumentEntity d2 = new DocumentEntity(
-//        "2", "doc2.txt", "text/plain", TEST_SIZE, "folder1", "owner", LocalDateTime.now(), "url", new byte[0]);
-//    DocumentEntity d3 = new DocumentEntity(
-//        "3", "other.txt", "text/plain", TEST_SIZE, "folder2", "owner", LocalDateTime.now(), "url", new byte[0]);
-//    List<DocumentEntity> docs = Arrays.asList(d1, d2, d3);
-//    Set<String> names = NameIncrementHelper.collectSiblingNames(docs, "folder1", null);
-//    assertTrue(names.contains("doc.txt"));
-//    assertTrue(names.contains("doc2.txt"));
-//    assertFalse(names.contains("other.txt"));
-//  }
+    FolderEntity f2 = new FolderEntity();
+    f2.setId("2");
+    f2.setName("B");
+    f2.setParentId("root");
+    f2.setCreatedDate(LocalDateTime.now());
 
-//  @Test
-//  void testCollectSiblingNames_excludeId() {
-//    FolderEntity f1 = new FolderEntity("1", "A", "root", LocalDateTime.now());
-//    FolderEntity f2 = new FolderEntity("2", "B", "root", LocalDateTime.now());
-//    List<FolderEntity> folders = Arrays.asList(f1, f2);
-//    Set<String> names = NameIncrementHelper.collectSiblingNames(folders, "root", "1");
-//    assertFalse(names.contains("A"));
-//    assertTrue(names.contains("B"));
-//  }
+    FolderEntity f3 = new FolderEntity();
+    f3.setId("3");
+    f3.setName("C");
+    f3.setParentId("other");
+    f3.setCreatedDate(LocalDateTime.now());
+
+    List<FolderEntity> folders = Arrays.asList(f1, f2, f3);
+    Set<String> names = NameIncrementHelper.collectSiblingNames(folders, "root", null);
+    assertTrue(names.contains("A"));
+    assertTrue(names.contains("B"));
+    assertFalse(names.contains("C"));
+  }
+
+  @Test
+  void testCollectSiblingNames_documents() {
+    DocumentEntity d1 = new DocumentEntity();
+    d1.setId("1");
+    d1.setName("doc.txt");
+    d1.setType("text/plain");
+    d1.setSize(TEST_SIZE);
+    d1.setFolderId("folder1");
+    d1.setOwnerId("owner");
+    d1.setCreatedDate(LocalDateTime.now());
+    d1.setDownloadUrl("url");
+    d1.setData(new byte[0]);
+
+    DocumentEntity d2 = new DocumentEntity();
+    d2.setId("2");
+    d2.setName("doc2.txt");
+    d2.setType("text/plain");
+    d2.setSize(TEST_SIZE);
+    d2.setFolderId("folder1");
+    d2.setOwnerId("owner");
+    d2.setCreatedDate(LocalDateTime.now());
+    d2.setDownloadUrl("url");
+    d2.setData(new byte[0]);
+
+    DocumentEntity d3 = new DocumentEntity();
+    d3.setId("3");
+    d3.setName("other.txt");
+    d3.setType("text/plain");
+    d3.setSize(TEST_SIZE);
+    d3.setFolderId("folder2");
+    d3.setOwnerId("owner");
+    d3.setCreatedDate(LocalDateTime.now());
+    d3.setDownloadUrl("url");
+    d3.setData(new byte[0]);
+
+    List<DocumentEntity> docs = Arrays.asList(d1, d2, d3);
+    Set<String> names = NameIncrementHelper.collectSiblingNames(docs, "folder1", null);
+    assertTrue(names.contains("doc.txt"));
+    assertTrue(names.contains("doc2.txt"));
+    assertFalse(names.contains("other.txt"));
+  }
+
+  @Test
+  void testCollectSiblingNames_excludeId() {
+    FolderEntity f1 = new FolderEntity();
+    f1.setId("1");
+    f1.setName("A");
+    f1.setParentId("root");
+    f1.setCreatedDate(LocalDateTime.now());
+
+    FolderEntity f2 = new FolderEntity();
+    f2.setId("2");
+    f2.setName("B");
+    f2.setParentId("root");
+    f2.setCreatedDate(LocalDateTime.now());
+
+    List<FolderEntity> folders = Arrays.asList(f1, f2);
+    Set<String> names = NameIncrementHelper.collectSiblingNames(folders, "root", "1");
+    assertFalse(names.contains("A"));
+    assertTrue(names.contains("B"));
+  }
 }

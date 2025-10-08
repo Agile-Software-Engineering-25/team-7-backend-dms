@@ -78,6 +78,14 @@ class DocumentServiceImplTest {
       "file", "testfile.txt", "text/plain", "Hello World".getBytes()
     );
 
+    // Mock the folder that the document will be created in
+    com.ase.dms.entities.FolderEntity mockFolder = new com.ase.dms.entities.FolderEntity();
+    mockFolder.setId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
+    mockFolder.setName("Test Folder");
+    // Initialize empty documents list for JPA relationship
+    mockFolder.setDocuments(new java.util.ArrayList<>());
+    when(folderRepository.findById("f1e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder));
+
     // save(...) soll genau das zurückgeben, was rein kommt
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -98,10 +106,16 @@ class DocumentServiceImplTest {
 
   @Test
   void testCreateDocument_withNameConflict_incrementsName() {
+    // Mock the folder that documents will be created in
+    com.ase.dms.entities.FolderEntity mockFolder = new com.ase.dms.entities.FolderEntity();
+    mockFolder.setId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
+    mockFolder.setName("Test Folder");
+
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-    // Erstes Dokument: findByFolderId()() gibt leere Liste zurück
-    when(documentRepository.findByFolderId(any())).thenReturn(List.of());
+    // First document: empty folder
+    mockFolder.setDocuments(new java.util.ArrayList<>());
+    when(folderRepository.findById("f1e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder));
 
     MockMultipartFile file1 = new MockMultipartFile(
       "file",
@@ -111,8 +125,9 @@ class DocumentServiceImplTest {
     DocumentEntity doc1 = service.createDocument(file1, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("conflict.txt", doc1.getName());
 
-    // Zweites Dokument: findByFolderId()() gibt doc1 zurück
-    when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1));
+    // Second document: folder now contains doc1
+    mockFolder.setDocuments(java.util.List.of(doc1));
+    when(folderRepository.findById("f1e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder));
 
     MockMultipartFile file2 = new MockMultipartFile(
       "file",
@@ -122,8 +137,9 @@ class DocumentServiceImplTest {
     DocumentEntity doc2 = service.createDocument(file2, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("conflict (1).txt", doc2.getName());
 
-    // Drittes Dokument: findByFolderId()() gibt doc1 und doc2 zurück
-    when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1, doc2));
+    // Third document: folder now contains doc1 and doc2
+    mockFolder.setDocuments(java.util.List.of(doc1, doc2));
+    when(folderRepository.findById("f1e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder));
 
     MockMultipartFile file3 = new MockMultipartFile(
       "file",
@@ -136,9 +152,16 @@ class DocumentServiceImplTest {
 
   @Test
   void testUpdateDocument_withNameConflict_incrementsName() {
+    // Mock folder for both creation and update operations
+    com.ase.dms.entities.FolderEntity mockFolder1 = new com.ase.dms.entities.FolderEntity();
+    mockFolder1.setId("f2e1b676-474c-4014-a7ee-53fc5cb90127");
+    mockFolder1.setName("Test Folder 1");
+
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-  // Erstes Dokument: keine vorhandenen Dokumente
-//  when(documentRepository.findByFolderId(any())).thenReturn(List.of());
+
+    // First document: empty folder
+    mockFolder1.setDocuments(new java.util.ArrayList<>());
+    when(folderRepository.findById("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder1));
 
     MockMultipartFile file1 = new MockMultipartFile(
       "file",
@@ -147,8 +170,9 @@ class DocumentServiceImplTest {
       "Hello".getBytes());
     DocumentEntity doc1 = service.createDocument(file1, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
 
-  // Zweites Dokument: doc1 ist bereits vorhanden
-//  when(documentRepository.findByFolderId(any())).thenReturn(List.of(doc1));
+    // Second document: folder now contains doc1
+    mockFolder1.setDocuments(java.util.List.of(doc1));
+    when(folderRepository.findById("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder1));
 
     MockMultipartFile file2 = new MockMultipartFile(
       "file",
@@ -158,11 +182,13 @@ class DocumentServiceImplTest {
     DocumentEntity doc2 = service.createDocument(file2, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("update (1).txt", doc2.getName());
 
-  // Mock für findById() für updateDocument()
-  when(documentRepository.findById(any())).thenReturn(Optional.of(doc1));
+    // Mock für findById() für updateDocument()
+    when(documentRepository.findById(any())).thenReturn(Optional.of(doc1));
 
-  // Update: beide Dokumente sind vorhanden
-//  when(documentRepository.findByFolderId("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(doc1, doc2));
+    // Update: folder now contains both documents for name conflict resolution
+    mockFolder1.setDocuments(java.util.List.of(doc1, doc2));
+    when(folderRepository.findById("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder1));
+
     doc1.setName("update (1).txt");
     DocumentEntity updated = service.updateDocument(doc1.getId(), doc1);
     assertEquals("update (1) (1).txt", updated.getName());
@@ -181,6 +207,13 @@ class DocumentServiceImplTest {
     original.setCreatedDate(LocalDateTime.now());
     original.setDownloadUrl("/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download");
     original.setData(new byte[0]);
+
+    // Mock the folder for validation during update - initialize with empty documents list
+    com.ase.dms.entities.FolderEntity mockFolder = new com.ase.dms.entities.FolderEntity();
+    mockFolder.setId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
+    mockFolder.setName("Test Folder");
+    mockFolder.setDocuments(new java.util.ArrayList<>());
+    when(folderRepository.findById("f1e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder));
 
     when(documentRepository.findById("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(original));
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
