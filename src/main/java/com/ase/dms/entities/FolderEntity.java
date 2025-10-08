@@ -41,19 +41,23 @@ public class FolderEntity {
   @JoinColumn(name = "parentId")
   @JsonBackReference("parent-subfolders")
   @ToString.Exclude
-  @Schema(description = "ID des übergeordneten Ordners als JPA Reference", example = "c12b8e51-6c40-42b6-86e9-d8cf823f4d34")
+  @Schema(hidden = true,
+      description = "übergeordneten Ordner als JPA Reference",
+      example = "c12b8e51-6c40-42b6-86e9-d8cf823f4d34")
   private FolderEntity parent;
 
   @OneToMany(mappedBy = "parent", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
   @JsonManagedReference("parent-subfolders")
   @ToString.Exclude
-  @Schema(description = "Liste der Unterordner")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+      description = "Liste der Unterordner")
   private List<FolderEntity> subfolders = new ArrayList<>();
 
   @OneToMany(mappedBy = "folder", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
   @JsonManagedReference("folder-documents")
   @ToString.Exclude
-  @Schema(description = "Liste der Dokumente in diesem Ordner")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+      description = "Liste der Dokumente in diesem Ordner")
   private List<DocumentEntity> documents = new ArrayList<>();
 
   // Convenience method to get parent ID without loading the entity
@@ -62,6 +66,8 @@ public class FolderEntity {
   }
 
   // Convenience method to set parent by ID
+  @Schema(description = "ID des übergeordneten Ordners",
+      example = "c12b8e51-6c40-42b6-86e9-d8cf823f4d34")
   public void setParentId(String parentId) {
     if (parentId != null) {
       this.parent = new FolderEntity();

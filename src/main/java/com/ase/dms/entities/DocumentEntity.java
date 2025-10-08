@@ -36,7 +36,7 @@ public class DocumentEntity {
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateigröße in Bytes")
   private long size;
 
-  @Schema(description = "ID des Besitzers (User) des Dokuments")
+  @Schema(description = "ID des Besitzers (User) des Dokuments", example = "9ad5c7cf-273c-4243-91a3-f7969f6dc985")
   private String ownerId;
 
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -58,13 +58,18 @@ public class DocumentEntity {
   @JoinColumn(name = "folderId")
   @JsonBackReference("folder-documents")
   @ToString.Exclude
-  @Schema(description = "ID des übergeordneten Ordners als JPA Reference", example = "ef9b2274-817e-4cba-879e-383548577f4e")
+  @Schema(hidden = true,
+      description = "ID des übergeordneten Ordners als JPA Reference",
+      example = "ef9b2274-817e-4cba-879e-383548577f4e")
   private FolderEntity folder;
 
+  // Convenience method to get folder ID without loading the entity
   public String getFolderId() {
     return folder != null ? folder.getId() : null;
   }
 
+  @Schema(description = "ID of the parent folder",
+      example = "ef9b2274-817e-4cba-879e-383548577f4e")
   public void setFolderId(String folderId) {
     if (folderId != null) {
       this.folder = new FolderEntity();
@@ -73,4 +78,5 @@ public class DocumentEntity {
       this.folder = null;
     }
   }
+
 }
