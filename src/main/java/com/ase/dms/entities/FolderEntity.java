@@ -1,7 +1,8 @@
 package com.ase.dms.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -38,19 +39,21 @@ public class FolderEntity {
   // JPA Relationships - this handles the foreign key
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parentId")
-  @JsonIgnore
+  @JsonBackReference("parent-subfolders")
   @ToString.Exclude
   @Schema(description = "ID des übergeordneten Ordners als JPA Reference", example = "c12b8e51-6c40-42b6-86e9-d8cf823f4d34")
   private FolderEntity parent;
 
   @OneToMany(mappedBy = "parent", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
-  @JsonIgnore
+  @JsonManagedReference("parent-subfolders")
   @ToString.Exclude
+  @Schema(description = "Liste der Unterordner")
   private List<FolderEntity> subfolders = new ArrayList<>();
 
   @OneToMany(mappedBy = "folder", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
-  @JsonIgnore
+  @JsonManagedReference("folder-documents")
   @ToString.Exclude
+  @Schema(description = "Liste der Dokumente in diesem Ordner")
   private List<DocumentEntity> documents = new ArrayList<>();
 
   // Convenience method to get parent ID without loading the entity

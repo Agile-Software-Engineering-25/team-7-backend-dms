@@ -1,13 +1,10 @@
 package com.ase.dms.services;
 
-import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
-import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
-import com.ase.dms.repositories.DocumentRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +27,6 @@ public class FolderServiceImpl implements FolderService {
   /**
    * Constructor for FolderServiceImpl.
    * @param folders the folder repository
-   * @param documents the document repository
    */
   public FolderServiceImpl(final FolderRepository folders) {
     this.folders = folders;
@@ -39,10 +35,10 @@ public class FolderServiceImpl implements FolderService {
   /**
    * Retrieves the contents of a folder by ID or 'root'.
    * @param id the folder UUID or 'root'
-   * @return FolderResponseDTO with folder, subfolders, and documents
+   * @return FolderEntity with subfolders and documents accessible via JPA relationships
    */
   @Override
-  public FolderResponseDTO getFolderContents(final String id) {
+  public FolderEntity getFolderContents(final String id) {
     FolderEntity folder;
     if (ROOT_ID.equals(id)) {
       folder = folders.findByNameAndParentIsNull(ROOT_ID)
@@ -54,11 +50,8 @@ public class FolderServiceImpl implements FolderService {
         .orElseThrow(() -> new FolderNotFoundException("Ordner "+ id + " nicht gefunden"));
     }
 
-    // Use JPA relationships to get subfolders and documents
-    List<FolderEntity> subfolders = folder.getSubfolders();
-    List<DocumentEntity> docs = folder.getDocuments();
-
-    return new FolderResponseDTO(folder, subfolders, docs);
+    // JPA relationships automatically provides access to subfolders and documents
+    return folder;
   }
 
   /**

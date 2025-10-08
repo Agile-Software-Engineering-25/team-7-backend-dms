@@ -1,7 +1,7 @@
 package com.ase.dms.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -56,7 +56,7 @@ public class DocumentEntity {
   // JPA Relationship
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "folderId")
-  @JsonIgnore
+  @JsonBackReference("folder-documents")
   @ToString.Exclude
   @Schema(description = "ID des übergeordneten Ordners als JPA Reference", example = "ef9b2274-817e-4cba-879e-383548577f4e")
   private FolderEntity folder;
