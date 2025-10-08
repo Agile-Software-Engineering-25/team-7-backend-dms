@@ -75,7 +75,8 @@ public class FolderEntity {
     if (parentId != null) {
       this.parent = new FolderEntity();
       this.parent.setId(parentId);
-    } else {
+    }
+    else {
       this.parent = null;
     }
   }

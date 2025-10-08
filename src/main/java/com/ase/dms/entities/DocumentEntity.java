@@ -77,7 +77,8 @@ public class DocumentEntity {
     if (folderId != null) {
       this.folder = new FolderEntity();
       this.folder.setId(folderId);
-    } else {
+    }
+    else {
       this.folder = null;
     }
   }
