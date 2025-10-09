@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dms
+  labels:
+    app: dms
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: sau-portal.de
+      http:
+        paths:
+          - path: /document-management
+            pathType: Prefix
+            backend:
+              service:
+                name: dms
+                port:
+                  number: 8080
