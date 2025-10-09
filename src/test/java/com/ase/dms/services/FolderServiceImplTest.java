@@ -1,14 +1,11 @@
 package com.ase.dms.services;
 
-import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.exceptions.FolderNotFoundException;
-import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,14 +26,11 @@ class FolderServiceImplTest {
   @Mock
   private FolderRepository folderRepository;
 
-  @Mock
-  private DocumentRepository documentRepository;
-
-  private FolderServiceImpl folderService; // <— DIESE Variable fehlte dir
+  private FolderServiceImpl folderService;
 
   @BeforeEach
   void setUp() {
-    folderService = new FolderServiceImpl(folderRepository, documentRepository);
+    folderService = new FolderServiceImpl(folderRepository);
   }
 
   @Test
@@ -65,20 +59,22 @@ class FolderServiceImplTest {
     doc.setDownloadUrl("/dms/v1/documents/d1e1b676-474c-4014-a7ee-53fc5cb90127/download");
     doc.setData(new byte[0]);
 
+    // Set up JPA relationships - folder should contain the subfolder and document
+    folder.getSubfolders().add(sub);
+    folder.getDocuments().add(doc);
+
     when(folderRepository.findById("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(folder));
-    when(folderRepository.findByParentId("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(sub));
-    when(documentRepository.findByFolderId("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(List.of(doc));
 
     // Act
-    FolderResponseDTO dto = folderService.getFolderContents("4111b676-474c-4014-a7ee-53fc5cb90127");
+    FolderEntity result = folderService.getFolderContents("4111b676-474c-4014-a7ee-53fc5cb90127");
 
     // Assert
-    assertNotNull(dto);
-    assertEquals("4111b676-474c-4014-a7ee-53fc5cb90127", dto.getFolder().getId());
-    assertEquals(1, dto.getSubfolders().size());
-    assertEquals("f2e1b676-474c-4014-a7ee-53fc5cb90127", dto.getSubfolders().getFirst().getId());
-    assertEquals(1, dto.getDocuments().size());
-    assertEquals("d1e1b676-474c-4014-a7ee-53fc5cb90127", dto.getDocuments().getFirst().getId());
+    assertNotNull(result);
+    assertEquals("4111b676-474c-4014-a7ee-53fc5cb90127", result.getId());
+    assertEquals(1, result.getSubfolders().size());
+    assertEquals("f2e1b676-474c-4014-a7ee-53fc5cb90127", result.getSubfolders().get(0).getId());
+    assertEquals(1, result.getDocuments().size());
+    assertEquals("d1e1b676-474c-4014-a7ee-53fc5cb90127", result.getDocuments().get(0).getId());
   }
 
   @Test
@@ -104,18 +100,15 @@ class FolderServiceImplTest {
     FolderEntity rootFolder = new FolderEntity();
     rootFolder.setId("00000000-0000-0000-0000-000000000000");
     rootFolder.setName("root");
-    rootFolder.setParentId(null);
+    rootFolder.setParent(null);
     rootFolder.setCreatedDate(LocalDateTime.now());
 
-    when(folderRepository.findByNameAndParentIdIsNull("root")).thenReturn(Optional.of(rootFolder));
-    when(folderRepository.findByParentId("00000000-0000-0000-0000-000000000000")).thenReturn(List.of());
-    when(documentRepository.findByFolderId("00000000-0000-0000-0000-000000000000")).thenReturn(List.of());
+    when(folderRepository.findByNameAndParentIsNull("root")).thenReturn(Optional.of(rootFolder));
 
-    FolderResponseDTO response = folderService.getFolderContents("root");
+    FolderEntity response = folderService.getFolderContents("root");
     assertNotNull(response);
-    assertNotNull(response.getFolder());
-    assertEquals("root", response.getFolder().getName());
-    assertNull(response.getFolder().getParentId());
+    assertEquals("root", response.getName());
+    assertNull(response.getParentId());
   }
 
   @Test

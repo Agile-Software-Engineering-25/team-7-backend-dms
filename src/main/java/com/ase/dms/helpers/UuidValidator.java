@@ -1,5 +1,6 @@
 package com.ase.dms.helpers;
 
+import com.ase.dms.exceptions.ErrorCodes;
 import com.ase.dms.exceptions.ValidationException;
 import java.util.UUID;
 
@@ -14,7 +15,8 @@ public class UuidValidator {
       UUID.fromString(id);
     }
     catch (Exception e) {
-      throw ValidationException.invalidUuid(id);
+      throw new ValidationException(ErrorCodes.VAL_INVALID_UUID,
+          "Invalid UUID format: '" + id + "'");
     }
   }
 }

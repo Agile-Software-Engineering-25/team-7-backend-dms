@@ -30,7 +30,7 @@ public enum ErrorCodes {
     // Folder-related errors (FOLDER_*)
     FOLDER_NOT_FOUND(HttpStatus.NOT_FOUND),
     FOLDER_INVALID_NAME(HttpStatus.BAD_REQUEST),
-    FOLDER_NOT_EMPTY(HttpStatus.CONFLICT),
+    FOLDER_NOT_EMPTY(HttpStatus.BAD_REQUEST),
     FOLDER_PARENT_INVALID(HttpStatus.BAD_REQUEST),
     FOLDER_CIRCULAR_REFERENCE(HttpStatus.BAD_REQUEST),
 
@@ -38,8 +38,9 @@ public enum ErrorCodes {
     VAL_INVALID_UUID(HttpStatus.BAD_REQUEST),
     VAL_MISSING_PARAMETER(HttpStatus.BAD_REQUEST),
     VAL_INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST),
+    VAL_CHILDREN_FOLDER(HttpStatus.BAD_REQUEST),
 
-    // System errors (SYS_*)
+  // System errors (SYS_*)
     SYS_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final HttpStatus httpStatus;

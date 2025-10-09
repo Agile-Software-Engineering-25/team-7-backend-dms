@@ -1,6 +1,5 @@
 package com.ase.dms.controllers;
 
-import com.ase.dms.dtos.FolderResponseDTO;
 import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.services.FolderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +30,7 @@ public class FoldersController {
     @ApiResponse(responseCode = "404", ref = "#/components/responses/FolderNotFoundResponse")
   })
   @GetMapping("/{id}")
-  public ResponseEntity<FolderResponseDTO> getFolderContents(
+  public ResponseEntity<FolderEntity> getFolderContents(
       @Parameter(description = "Folder UUID or 'root'") @PathVariable String id) {
     return ResponseEntity.ok(folderService.getFolderContents(id));
   }

@@ -19,15 +19,14 @@ public class DatabaseInitializer {
 
   @EventListener(ApplicationReadyEvent.class)
   public void createRootFolderIfNotExists() {
-    boolean rootExists = folderRepository.findByNameAndParentIdIsNull("root").isPresent();
+    boolean rootExists = folderRepository.findByNameAndParentIsNull("root").isPresent();
     if (!rootExists) {
       FolderEntity root = new FolderEntity();
       root.setId(java.util.UUID.randomUUID().toString());
       root.setName("root");
-      root.setParentId(null);
+      root.setParent(null);
       root.setCreatedDate(LocalDateTime.now());
       folderRepository.save(root);
     }
   }
 }
-
