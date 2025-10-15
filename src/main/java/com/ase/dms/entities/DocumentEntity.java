@@ -51,6 +51,7 @@ public class DocumentEntity {
       example = "/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download")
   private String downloadUrl;
 
+  // TODO: Getter and Setter for binaries to use MINIO Service
   @Lob
   @Column(columnDefinition = "VARBINARY")
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateiinhalt")
