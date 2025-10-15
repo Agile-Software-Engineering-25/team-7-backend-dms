@@ -24,3 +24,9 @@ logging:
     com.ase.dms: ${LOGGING_LEVEL_COM_ASE_DMS:DEBUG}
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+
+minio:
+  endpoint: ${MINIO_ENDPOINT:localhost}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  access-secret: ${MINIO_SECRET_KEY:minioadmin}
+  bucketName: ${MINIO_BUCKET_NAME:documents}
