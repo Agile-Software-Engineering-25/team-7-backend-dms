@@ -14,7 +14,8 @@ public class DbConfigChecker {
   public void checkPassword() {
     if (dbPassword != null) {
       System.out.println("DB Password length: " + dbPassword.length());
-    } else {
+    }
+    else {
       System.out.println("DB Password ist null");
     }
   }
