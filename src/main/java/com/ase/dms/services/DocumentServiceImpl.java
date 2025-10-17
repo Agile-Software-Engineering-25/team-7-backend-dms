@@ -69,13 +69,15 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
       doc.setCreatedDate(LocalDateTime.now());
 
-      // Build full download URL including context path and base URL
-      String downloadUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+      // Build full download URL including scheme, host, port, and context path
+      doc.setDownloadUrl(ServletUriComponentsBuilder.fromCurrentRequestUri()
+          .replacePath(ServletUriComponentsBuilder.fromCurrentContextPath().build().getPath())
+          .replaceQuery(null) // Remove any query parameters
           .path("/v1/documents/")
           .path(doc.getId())
           .path("/download")
-          .toUriString();
-      doc.setDownloadUrl(downloadUrl);
+          .build()
+          .toUriString());
 
       doc.setData(file.getBytes());
 

@@ -2,9 +2,7 @@ package com.ase.dms.config;
 
 import com.ase.dms.exceptions.ErrorCodes;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -36,19 +34,12 @@ import org.springframework.context.annotation.Configuration;
             - `FOLDER_*`: Folder-related errors
             - `VAL_*`: Validation errors
             - `SYS_*`: System errors
-            """,
-        contact = @Contact(
-            name = "DMS Development Team",
-            email = "dev-team@example.com"
-        ),
-        license = @License(
-            name = "MIT License",
-            url = "https://opensource.org/licenses/MIT"
-        )
+            """
+
     ),
     servers = {
-        @Server(url = "http://localhost:8080", description = "Development server"),
-        @Server(url = "https://api.dms.example.com", description = "Production server")
+        @Server(url = "http://localhost:8080", description = "Local"),
+        @Server(url = "https://sau-portal.de/dms", description = "Production server")
     }
 )
 public class OpenApiConfig {

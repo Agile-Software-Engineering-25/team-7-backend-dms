@@ -6,8 +6,8 @@ auth:oauth2 {
   grant_type: client_credentials
   access_token_url: https://keycloak.sau-portal.de/realms/sau/protocol/openid-connect/token
   refresh_token_url: 
-  client_id: 
-  client_secret: 
+  client_id: {{client_id}}
+  client_secret: {{secret}}
   scope: 
   credentials_placement: body
   credentials_id: credentials
