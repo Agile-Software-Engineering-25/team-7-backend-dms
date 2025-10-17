@@ -4,8 +4,10 @@ package com.ase.dms.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -13,21 +15,36 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(new JwtAuthConverter());
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+    jwtConverter.setJwtGrantedAuthoritiesConverter(new JwtAuthConverter());
 
+    //the role always has to be capitalized
+    http
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(authorize -> authorize
+            // Public endpoints
+            .requestMatchers("/actuator/health/**").permitAll()
+            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
-        //the role always has to be capitalized
-        http
-          .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints isnt needed for our purpose since we are not using cookies for auth
-          .authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/demo").hasRole("DEFAULT-ROLES-SAU")
-            .requestMatchers("/admin/**").hasRole("admin")
+            // Read-only access for Students (GET methods only)
+            .requestMatchers(HttpMethod.GET, "/dms/v1/documents/**").hasAnyRole("STUDENT", "DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.GET, "/dms/v1/folders/**").hasAnyRole("STUDENT", "DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+
+            // Write access (POST, PATCH, DELETE) - only for non-Student roles
+            .requestMatchers(HttpMethod.POST, "/dms/v1/documents/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.PATCH, "/dms/v1/documents/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.DELETE, "/dms/v1/documents/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+
+            .requestMatchers(HttpMethod.POST, "/dms/v1/folders/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.PATCH, "/dms/v1/folders/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.DELETE, "/dms/v1/folders/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+
+            // All other requests require authentication
             .anyRequest().authenticated())
-          .oauth2ResourceServer(oauth2 -> oauth2
+        .oauth2ResourceServer(oauth2 -> oauth2
             .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
-        return http.build();
-    }
+    return http.build();
+  }
 }
