@@ -31,17 +31,25 @@ public class SecurityConfig {
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
             // Read-only access for Students (GET methods only)
-            .requestMatchers(HttpMethod.GET, "/v1/documents/**").hasAnyRole("STUDENT", "DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
-            .requestMatchers(HttpMethod.GET, "/v1/folders/**").hasAnyRole("STUDENT", "DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.GET, "/v1/documents/**")
+            .hasAnyRole("STUDENT", "DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.GET, "/v1/folders/**")
+            .hasAnyRole("STUDENT", "DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
 
             // Write access (POST, PATCH, DELETE) - only for non-Student roles
-            .requestMatchers(HttpMethod.POST, "/v1/documents/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
-            .requestMatchers(HttpMethod.PATCH, "/v1/documents/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
-            .requestMatchers(HttpMethod.DELETE, "/v1/documents/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.POST, "/v1/documents/**")
+            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.PATCH, "/v1/documents/**")
+            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.DELETE, "/v1/documents/**")
+            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
 
-            .requestMatchers(HttpMethod.POST, "/v1/folders/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
-            .requestMatchers(HttpMethod.PATCH, "/v1/folders/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
-            .requestMatchers(HttpMethod.DELETE, "/v1/folders/**").hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.POST, "/v1/folders/**")
+            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.PATCH, "/v1/folders/**")
+            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .requestMatchers(HttpMethod.DELETE, "/v1/folders/**")
+            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
 
             // All other requests require authentication
             .anyRequest().authenticated())
