@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/dms/v1/documents")
+@RequestMapping("/v1/documents")
 @Tag(name = "Documents", description = "Document management operations")
 public class DocumentsController {
 

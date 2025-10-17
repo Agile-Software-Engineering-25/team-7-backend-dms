@@ -22,6 +22,8 @@ spring:
           jwk-set-uri: https://keycloak.sau-portal.de/realms/sau/protocol/openid-connect/certs
 server:
   port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /dms
   error:
     include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:always}
   shutdown: graceful

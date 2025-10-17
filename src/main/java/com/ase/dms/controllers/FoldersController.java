@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/dms/v1/folders")
+@RequestMapping("/v1/folders")
 @Tag(name = "Folders", description = "Folder management and navigation operations")
 public class FoldersController {
 

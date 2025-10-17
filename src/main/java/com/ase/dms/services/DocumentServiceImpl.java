@@ -16,6 +16,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Service implementation for document management.
@@ -67,7 +68,15 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setSize(file.getSize());
       doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
       doc.setCreatedDate(LocalDateTime.now());
-      doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
+
+      // Build full download URL including context path and base URL
+      String downloadUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+          .path("/v1/documents/")
+          .path(doc.getId())
+          .path("/download")
+          .toUriString();
+      doc.setDownloadUrl(downloadUrl);
+
       doc.setData(file.getBytes());
 
       return documents.save(doc);
