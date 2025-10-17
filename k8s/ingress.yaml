@@ -10,7 +10,7 @@ spec:
     - host: sau-portal.de
       http:
         paths:
-          - path: /document-management
+          - path: /dms
             pathType: Prefix
             backend:
               service:
