@@ -70,15 +70,22 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setOwnerId(UserInformationJWT.getUserId());
       doc.setCreatedDate(LocalDateTime.now());
 
-      // Build full download URL including scheme, host, port, and context path
-      doc.setDownloadUrl(ServletUriComponentsBuilder.fromCurrentRequestUri()
-          .replacePath(ServletUriComponentsBuilder.fromCurrentContextPath().build().getPath())
-          .replaceQuery(null) // Remove any query parameters
-          .path("/v1/documents/")
-          .path(doc.getId())
-          .path("/download")
-          .build()
-          .toUriString());
+      // Build download URL - use request context if available, otherwise use relative path
+      String downloadUrl;
+      try {
+        downloadUrl = ServletUriComponentsBuilder.fromCurrentRequestUri()
+            .replacePath(ServletUriComponentsBuilder.fromCurrentContextPath().build().getPath())
+            .replaceQuery(null)
+            .path("/v1/documents/")
+            .path(doc.getId())
+            .path("/download")
+            .build()
+            .toUriString();
+      } catch (IllegalStateException e) {
+        // No request context (e.g., in tests) - use relative path
+        downloadUrl = "/dms/v1/documents/" + doc.getId() + "/download";
+      }
+      doc.setDownloadUrl(downloadUrl);
 
       doc.setData(file.getBytes());
 
