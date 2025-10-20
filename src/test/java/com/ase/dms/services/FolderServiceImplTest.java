@@ -57,7 +57,6 @@ class FolderServiceImplTest {
     doc.setOwnerId("owner");
     doc.setCreatedDate(LocalDateTime.now());
     doc.setDownloadUrl("/dms/v1/documents/d1e1b676-474c-4014-a7ee-53fc5cb90127/download");
-    doc.setData(new byte[0]);
 
     // Set up JPA relationships - folder should contain the subfolder and document
     folder.getSubfolders().add(sub);
@@ -91,7 +90,7 @@ class FolderServiceImplTest {
     String invalidId = "12345678-1234-1234-1234-1234567890ab"; // valid UUID, but not found
     when(folderRepository.findById(invalidId)).thenReturn(Optional.empty());
     FolderNotFoundException ex = assertThrows(FolderNotFoundException.class,
-      () -> folderService.getFolderContents(invalidId));
+        () -> folderService.getFolderContents(invalidId));
     assertTrue(ex.getMessage().contains(invalidId));
   }
 
