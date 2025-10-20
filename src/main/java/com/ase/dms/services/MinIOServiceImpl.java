@@ -139,7 +139,7 @@ public class MinIOServiceImpl implements MinIOService {
        * ServerException
        */
 
-      LOGGER.error("getObjectData failed", e);
+      LOGGER.error("setObject failed", e);
       throw new MinIOGetObjectDataException(objectName);
     }
   }
