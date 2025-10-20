@@ -26,6 +26,7 @@ public class FolderServiceImpl implements FolderService {
 
   /**
    * Constructor for FolderServiceImpl.
+   *
    * @param folders the folder repository
    */
   public FolderServiceImpl(final FolderRepository folders) {
@@ -34,20 +35,21 @@ public class FolderServiceImpl implements FolderService {
 
   /**
    * Retrieves the contents of a folder by ID or 'root'.
+   *
    * @param id the folder UUID or 'root'
-   * @return FolderEntity with subfolders and documents accessible via JPA relationships
+   * @return FolderEntity with subfolders and documents accessible via JPA
+   *         relationships
    */
   @Override
   public FolderEntity getFolderContents(final String id) {
     FolderEntity folder;
     if (ROOT_ID.equals(id)) {
       folder = folders.findByNameAndParentIsNull(ROOT_ID)
-        .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
-    }
-    else {
+          .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
+    } else {
       UuidValidator.validateOrThrow(id);
       folder = folders.findById(id)
-        .orElseThrow(() -> new FolderNotFoundException("Ordner "+ id + " nicht gefunden"));
+          .orElseThrow(() -> new FolderNotFoundException("Ordner " + id + " nicht gefunden"));
     }
 
     // JPA relationships automatically provides access to subfolders and documents
@@ -56,6 +58,7 @@ public class FolderServiceImpl implements FolderService {
 
   /**
    * Creates a new folder.
+   *
    * @param folder the folder entity to create
    * @return the created FolderEntity
    */
@@ -84,7 +87,8 @@ public class FolderServiceImpl implements FolderService {
 
   /**
    * Updates an existing folder.
-   * @param id the folder UUID
+   *
+   * @param id       the folder UUID
    * @param incoming the folder entity with updates
    * @return the updated FolderEntity
    */
@@ -118,7 +122,9 @@ public class FolderServiceImpl implements FolderService {
 
   /**
    * Deletes a folder by ID with JPA cascade handling.
-   * JPA will automatically delete all subfolders and documents due to cascade configuration.
+   * JPA will automatically delete all subfolders and documents due to cascade
+   * configuration.
+   *
    * @param id the folder UUID
    */
   @Override

@@ -10,6 +10,7 @@ import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
 import com.ase.dms.security.UserInformationJWT;
 import com.ase.dms.helpers.UuidValidator;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -178,5 +179,4 @@ public class DocumentServiceImpl implements DocumentService {
     minIOService.deleteObject(id);
     documents.deleteById(id);
   }
-
 }
