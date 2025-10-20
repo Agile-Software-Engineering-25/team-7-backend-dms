@@ -4,18 +4,13 @@ import com.ase.dms.config.MinioConfig;
 import com.ase.dms.exceptions.MinIOGetObjectDataException;
 
 import io.minio.GetObjectArgs;
+import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
-import io.minio.RemoveObjectsArgs;
-import io.minio.errors.MinioException;
-import io.minio.messages.DeleteError;
-import io.minio.messages.DeleteObject;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +104,54 @@ public class MinIOServiceImpl implements MinIOService {
 
   @Override
   public void setObject(String objectName, byte[] data) {
-    throw new NotImplementedException();
+    try {
+
+      // Convert byte[] to InputStream
+      InputStream inputStream = new ByteArrayInputStream(data);
+      long size = data.length;
+      long partSize = calculatePartSize(size);
+
+      minioConfig.minioClient().putObject(
+          PutObjectArgs.builder()
+              .bucket(minioConfig.getBucketName())
+              .object(objectName)
+              .stream(inputStream, size, partSize)
+              .contentType("application/octet-stream")
+              .build());
+
+    } catch (
+
+    Exception e) {
+
+      /**
+       * ErrorResponseException - thrown to indicate S3 service returned an error
+       * response.
+       * InsufficientDataException - thrown to indicate not enough data available in
+       * InputStream.
+       * InternalException - thrown to indicate internal library error.
+       * InvalidKeyException - thrown to indicate missing of HMAC SHA-256 library.
+       * InvalidResponseException - thrown to indicate S3 service returned invalid or
+       * no error response.
+       * IOException - thrown to indicate I/O error on S3 operation.
+       * NoSuchAlgorithmException - thrown to indicate missing of MD5 or SHA-256
+       * digest library.
+       * XmlParserException - thrown to indicate XML parsing error.
+       * ServerException
+       */
+
+      LOGGER.error("getObjectData failed", e);
+      throw new MinIOGetObjectDataException(objectName);
+    }
+  }
+
+  public static long calculatePartSize(long totalSize) {
+    final long MIN_PART_SIZE = 5L * 1024 * 1024; // 5 MB
+    final long MAX_PARTS = 10_000;
+
+    // Compute minimum required part size
+    long requiredPartSize = (long) Math.ceil((double) totalSize / MAX_PARTS);
+
+    // Ensure it's not smaller than 5 MB
+    return Math.max(requiredPartSize, MIN_PART_SIZE);
   }
 }
