@@ -10,10 +10,11 @@ import io.minio.RemoveObjectArgs;
 import io.minio.MinioClient;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.mockito.stubbing.Answer;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -49,12 +50,26 @@ class MinIOServiceImplTest {
     byte[] expectedData = "Sample Data".getBytes();
 
     GetObjectResponse response = mock(GetObjectResponse.class);
-    when(response.read(any(byte[].class))).thenAnswer(invocation -> {
-      byte[] buffer = invocation.getArgument(0);
-      System.arraycopy("Sample Data".getBytes(), 0, buffer, 0, "Sample Data".length());
-      return "Sample Data".length();
+
+    // Simulate a real stream with first read returning data, then end-of-stream
+    // (-1)
+    when(response.read(any(byte[].class))).thenAnswer(new Answer<Integer>() {
+      private boolean dataRead = false;
+
+      @Override
+      public Integer answer(InvocationOnMock invocation) {
+        byte[] buffer = invocation.getArgument(0);
+        if (!dataRead) {
+          byte[] data = "Sample Data".getBytes();
+          System.arraycopy(data, 0, buffer, 0, data.length);
+          dataRead = true;
+          return data.length;
+        } else {
+          return -1; // end-of-stream
+        }
+      }
     });
-    when(response.read(any(byte[].class), anyInt(), anyInt())).thenCallRealMethod();
+
     when(minioClient.getObject(any(GetObjectArgs.class))).thenReturn(response);
 
     byte[] result = minIOService.getObjectData(objectName);
@@ -78,7 +93,7 @@ class MinIOServiceImplTest {
     String objectName = "upload.txt";
     byte[] data = "Upload Data".getBytes();
 
-    doNothing().when(minioClient).putObject(any(PutObjectArgs.class));
+    when(minioClient.putObject(any(PutObjectArgs.class))).thenReturn(null);
 
     assertDoesNotThrow(() -> minIOService.setObject(objectName, data));
     verify(minioClient, times(1)).putObject(any(PutObjectArgs.class));
