@@ -22,7 +22,9 @@ import lombok.ToString;
 public class DocumentEntity {
   @Id
   @EqualsAndHashCode.Include
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Eindeutige ID des Dokuments", example = "4111b676-474c-4014-a7ee-53fc5cb90127")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+      description = "Eindeutige ID des Dokuments",
+      example = "4111b676-474c-4014-a7ee-53fc5cb90127")
   private String id;
 
   @NotBlank
@@ -59,7 +61,9 @@ public class DocumentEntity {
   @JoinColumn(name = "folderId")
   @JsonBackReference("folder-documents")
   @ToString.Exclude
-  @Schema(hidden = true, description = "ID des übergeordneten Ordners als JPA Reference", example = "ef9b2274-817e-4cba-879e-383548577f4e")
+  @Schema(hidden = true,
+      description = "ID des übergeordneten Ordners als JPA Reference",
+      example = "ef9b2274-817e-4cba-879e-383548577f4e")
   private FolderEntity folder;
 
   // Convenience method to get folder ID without loading the entity
@@ -67,12 +71,14 @@ public class DocumentEntity {
     return folder != null ? folder.getId() : null;
   }
 
-  @Schema(description = "ID of the parent folder", example = "ef9b2274-817e-4cba-879e-383548577f4e")
+  @Schema(description = "ID of the parent folder",
+      example = "ef9b2274-817e-4cba-879e-383548577f4e")
   public void setFolderId(String folderId) {
     if (folderId != null) {
       this.folder = new FolderEntity();
       this.folder.setId(folderId);
-    } else {
+    }
+    else {
       this.folder = null;
     }
   }
