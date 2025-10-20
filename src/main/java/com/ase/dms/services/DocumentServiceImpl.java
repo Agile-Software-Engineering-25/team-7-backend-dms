@@ -6,14 +6,14 @@ import com.ase.dms.exceptions.DocumentNotFoundException;
 import com.ase.dms.exceptions.DocumentUploadException;
 import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
+import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
-import com.ase.dms.helpers.UuidValidator;
+import com.ase.dms.security.UserInformationJWT;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import com.ase.userservice.security.UserInformationJWT;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -81,7 +81,8 @@ public class DocumentServiceImpl implements DocumentService {
             .path("/download")
             .build()
             .toUriString();
-      } catch (IllegalStateException e) {
+      }
+      catch (IllegalStateException e) {
         // No request context (e.g., in tests) - use relative path
         downloadUrl = "/dms/v1/documents/" + doc.getId() + "/download";
       }

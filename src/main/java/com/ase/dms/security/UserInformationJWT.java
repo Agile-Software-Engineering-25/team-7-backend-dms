@@ -1,4 +1,4 @@
-package com.ase.userservice.security;
+package com.ase.dms.security;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,23 +14,23 @@ import java.util.Map;
  * Provides convenient static methods to access authenticated user data.
  */
 public class UserInformationJWT {
-  
+
   /**
    * Get the current JWT token from the security context
    * @return JWT token or null if not authenticated
    */
   private static Jwt getCurrentJwt() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    
+
     if (authentication instanceof JwtAuthenticationToken) {
       return ((JwtAuthenticationToken) authentication).getToken();
     }
-    
+
     return null;
   }
-  
+
   /**
-   * Get the user ID 
+   * Get the user ID
    * @return User ID or null if not available
    */
   public static String getUserId() {
@@ -46,34 +46,34 @@ public class UserInformationJWT {
     Jwt jwt = getCurrentJwt();
     return jwt != null ? jwt.getClaimAsString("email") : null;
   }
-  
+
   /**
-   * Get the username 
+   * Get the username
    * @return Username or null if not available
    */
   public static String getUsername() {
     Jwt jwt = getCurrentJwt();
     return jwt != null ? jwt.getClaimAsString("preferred_username") : null;
-  } 
-  
+  }
+
   /**
-   * Get the user's first name 
+   * Get the user's first name
    * @return First name or null if not available
    */
   public static String getFirstName() {
     Jwt jwt = getCurrentJwt();
     return jwt != null ? jwt.getClaimAsString("given_name") : null;
   }
-  
+
   /**
-   * Get the user's last name 
+   * Get the user's last name
    * @return Last name or null if not available
    */
   public static String getLastName() {
     Jwt jwt = getCurrentJwt();
     return jwt != null ? jwt.getClaimAsString("family_name") : null;
   }
-  
+
   /**
    * Get all roles/groups of the user from multiple sources.
    * @return List of all unique roles or empty list if not available
@@ -83,16 +83,16 @@ public class UserInformationJWT {
     if (jwt == null) {
       return List.of();
     }
-    
+
     List<String> allRoles = new ArrayList<>();
-    
+
     // combine all group fields
     // groups
     List<String> groups = jwt.getClaimAsStringList("groups");
     if (groups != null) {
       allRoles.addAll(groups);
     }
-    
+
     // realm_access.roles
     try {
       Map<String, Object> realmAccess = jwt.getClaim("realm_access");
@@ -103,10 +103,11 @@ public class UserInformationJWT {
           allRoles.addAll(realmRoles);
         }
       }
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       // Ignore parsing errors
     }
-    
+
     // resource_access.account.roles
     try {
       Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
@@ -121,17 +122,18 @@ public class UserInformationJWT {
           }
         }
       }
-    } catch (Exception e) {
     }
-    
+    catch (Exception e) {
+    }
+
     // remove duplicates
     return allRoles.stream().distinct().toList();
   }
-  
+
   /**
    * Check if the user has a specific role (case-insensitive).
    * Searches in groups, realm_access.roles, and resource_access.account.roles
-   * 
+   *
    * @param role The role to check
    * @return true if user has the role, false otherwise
    */
@@ -139,13 +141,13 @@ public class UserInformationJWT {
     if (role == null) {
       return false;
     }
-    
+
     List<String> roles = getRoles();
     return roles.stream()
         .anyMatch(r -> r.equalsIgnoreCase(role));
   }
 
-  
+
   /**
    * Get a custom claim from the JWT
    * @param claimName Name of the claim
@@ -155,7 +157,7 @@ public class UserInformationJWT {
     Jwt jwt = getCurrentJwt();
     return jwt != null ? jwt.getClaim(claimName) : null;
   }
-  
+
   /**
    * Get a custom claim as String
    * @param claimName Name of the claim
@@ -165,7 +167,7 @@ public class UserInformationJWT {
     Jwt jwt = getCurrentJwt();
     return jwt != null ? jwt.getClaimAsString(claimName) : null;
   }
-  
+
   /**
    * Check if a user is currently authenticated
    * @return true if authenticated, false otherwise
