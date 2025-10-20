@@ -144,7 +144,7 @@ public class MinIOServiceImpl implements MinIOService {
     }
   }
 
-  public static long calculatePartSize(long totalSize) {
+  private static long calculatePartSize(long totalSize) {
     final long MIN_PART_SIZE = 5L * 1024 * 1024; // 5 MB
     final long MAX_PARTS = 10_000;
 
