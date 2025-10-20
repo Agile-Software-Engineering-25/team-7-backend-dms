@@ -32,24 +32,24 @@ public class SecurityConfig {
 
             // Read-only access for Students (GET methods only)
             .requestMatchers(HttpMethod.GET, "/v1/documents/**")
-            .hasAnyRole("STUDENT", "DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .hasAnyRole("Area-2.Team-7.Read.read-document")
             .requestMatchers(HttpMethod.GET, "/v1/folders/**")
-            .hasAnyRole("STUDENT", "DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .hasAnyRole("Area-2.Team-7.Read.read-document")
 
             // Write access (POST, PATCH, DELETE) - only for non-Student roles
             .requestMatchers(HttpMethod.POST, "/v1/documents/**")
-            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
             .requestMatchers(HttpMethod.PATCH, "/v1/documents/**")
-            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
             .requestMatchers(HttpMethod.DELETE, "/v1/documents/**")
-            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
 
             .requestMatchers(HttpMethod.POST, "/v1/folders/**")
-            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
             .requestMatchers(HttpMethod.PATCH, "/v1/folders/**")
-            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
             .requestMatchers(HttpMethod.DELETE, "/v1/folders/**")
-            .hasAnyRole("DOZENT", "HOCHSCHULVERWALTUNGSMITARBEITER", "HVS-ADMIN")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
 
             // All other requests require authentication
             .anyRequest().authenticated())

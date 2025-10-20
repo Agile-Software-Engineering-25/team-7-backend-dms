@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import com.ase.userservice.security.UserInformationJWT;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -66,7 +67,7 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setName(NameIncrementHelper.getIncrementedName(file.getOriginalFilename(), siblingNames));
       doc.setType(file.getContentType());
       doc.setSize(file.getSize());
-      doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
+      doc.setOwnerId(UserInformationJWT.getUserId());
       doc.setCreatedDate(LocalDateTime.now());
 
       // Build full download URL including scheme, host, port, and context path
@@ -136,10 +137,6 @@ public class DocumentServiceImpl implements DocumentService {
       FolderEntity newFolder = folders.findById(incoming.getFolderId())
           .orElseThrow(() -> new FolderNotFoundException(incoming.getFolderId()));
       existing.setFolder(newFolder);
-    }
-
-    if (incoming.getOwnerId() != null) {
-      existing.setOwnerId(incoming.getOwnerId());
     }
 
     return documents.save(existing);

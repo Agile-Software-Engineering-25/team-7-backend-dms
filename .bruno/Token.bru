@@ -1,0 +1,21 @@
+meta {
+  name: Token
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{keycloak}}
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  grant_type: client_credentials
+  client_id: {{client_id}}
+  client_secret: {{secret}}
+}
+
+settings {
+  encodeUrl: true
+}
