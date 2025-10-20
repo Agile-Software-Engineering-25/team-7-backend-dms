@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,19 +28,25 @@ public class DocumentServiceImpl implements DocumentService {
   private final DocumentRepository documents;
   private final FolderRepository folders;
 
+  @Autowired
+  private final MinIOService minIOService;
+
   /**
    * Constructor for DocumentServiceImpl.
+   *
    * @param documents the document repository
-   * @param folders the folder repository
+   * @param folders   the folder repository
    */
-  public DocumentServiceImpl(DocumentRepository documents, FolderRepository folders) {
+  public DocumentServiceImpl(DocumentRepository documents, FolderRepository folders, MinIOService minIOService) {
     this.documents = documents;
     this.folders = folders;
+    this.minIOService = minIOService;
   }
 
   /**
    * Create a new document in the given folder.
-   * @param file the file to upload
+   *
+   * @param file     the file to upload
    * @param folderId the target folder UUID
    * @return the created DocumentEntity
    */
@@ -68,11 +76,11 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
       doc.setCreatedDate(LocalDateTime.now());
       doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
-      doc.setData(file.getBytes());
+
+      minIOService.setObject(doc.getId(), file.getBytes());
 
       return documents.save(doc);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       throw new DocumentUploadException(
           "Failed to process uploaded file: " + file.getOriginalFilename(), e);
     }
@@ -80,6 +88,7 @@ public class DocumentServiceImpl implements DocumentService {
 
   /**
    * Get a document by its ID.
+   *
    * @param id the document UUID
    * @return the DocumentEntity
    */
@@ -87,12 +96,13 @@ public class DocumentServiceImpl implements DocumentService {
   public DocumentEntity getDocument(String id) {
     UuidValidator.validateOrThrow(id);
     return documents.findById(id)
-      .orElseThrow(() -> new DocumentNotFoundException(id));
+        .orElseThrow(() -> new DocumentNotFoundException(id));
   }
 
   /**
    * Update a document's metadata.
-   * @param id the document UUID
+   *
+   * @param id       the document UUID
    * @param incoming the new document data
    * @return the updated DocumentEntity
    */
@@ -136,6 +146,7 @@ public class DocumentServiceImpl implements DocumentService {
 
   /**
    * Delete a document by its ID.
+   *
    * @param id the document UUID
    */
   @Override
@@ -145,6 +156,8 @@ public class DocumentServiceImpl implements DocumentService {
     if (!documents.existsById(id)) {
       throw new DocumentNotFoundException(id);
     }
+    minIOService.deleteObject(id);
     documents.deleteById(id);
   }
+
 }
