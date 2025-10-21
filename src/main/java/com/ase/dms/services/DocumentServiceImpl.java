@@ -6,9 +6,10 @@ import com.ase.dms.exceptions.DocumentNotFoundException;
 import com.ase.dms.exceptions.DocumentUploadException;
 import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
+import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
-import com.ase.dms.helpers.UuidValidator;
+import com.ase.dms.security.UserInformationJWT;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Service implementation for document management.
@@ -65,9 +67,27 @@ public class DocumentServiceImpl implements DocumentService {
       doc.setName(NameIncrementHelper.getIncrementedName(file.getOriginalFilename(), siblingNames));
       doc.setType(file.getContentType());
       doc.setSize(file.getSize());
-      doc.setOwnerId("owner-id"); // später ersetzen, wenn es User gibt
+      doc.setOwnerId(UserInformationJWT.getUserId());
       doc.setCreatedDate(LocalDateTime.now());
-      doc.setDownloadUrl("/dms/v1/documents/" + doc.getId() + "/download");
+
+      // Build download URL - use request context if available, otherwise use relative path
+      String downloadUrl;
+      try {
+        downloadUrl = ServletUriComponentsBuilder.fromCurrentRequestUri()
+            .replacePath(ServletUriComponentsBuilder.fromCurrentContextPath().build().getPath())
+            .replaceQuery(null)
+            .path("/v1/documents/")
+            .path(doc.getId())
+            .path("/download")
+            .build()
+            .toUriString();
+      }
+      catch (IllegalStateException e) {
+        // No request context (e.g., in tests) - use relative path
+        downloadUrl = "/dms/v1/documents/" + doc.getId() + "/download";
+      }
+      doc.setDownloadUrl(downloadUrl);
+
       doc.setData(file.getBytes());
 
       return documents.save(doc);
@@ -125,10 +145,6 @@ public class DocumentServiceImpl implements DocumentService {
       FolderEntity newFolder = folders.findById(incoming.getFolderId())
           .orElseThrow(() -> new FolderNotFoundException(incoming.getFolderId()));
       existing.setFolder(newFolder);
-    }
-
-    if (incoming.getOwnerId() != null) {
-      existing.setOwnerId(incoming.getOwnerId());
     }
 
     return documents.save(existing);

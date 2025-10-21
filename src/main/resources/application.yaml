@@ -11,10 +11,17 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;MODE=PostgreSQL}
     driverClassName: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
     username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:test} #WioVxwp&xII6UlMS7Ik1!ZU!u
-
+    password: ${SPRING_DATASOURCE_PASSWORD:WioVxwp&xII6UlMS7Ik1!ZU!u}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak.sau-portal.de/realms/sau
+          jwk-set-uri: https://keycloak.sau-portal.de/realms/sau/protocol/openid-connect/certs
 server:
   port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /dms
   error:
     include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:always}
 

@@ -48,7 +48,7 @@ public class DocumentEntity {
 
   @Schema(accessMode = Schema.AccessMode.READ_ONLY,
       description = "Download-URL des Dokuments",
-      example = "/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download")
+      example = "https://sau-portal.de/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download")
   private String downloadUrl;
 
   @Lob
