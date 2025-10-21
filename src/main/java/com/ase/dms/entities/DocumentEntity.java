@@ -52,7 +52,6 @@ public class DocumentEntity {
   private String downloadUrl;
 
   @Lob
-  @Column(columnDefinition = "VARBINARY")
   @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateiinhalt")
   private byte[] data;
 
