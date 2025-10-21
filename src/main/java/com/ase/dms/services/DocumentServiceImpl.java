@@ -5,6 +5,7 @@ import com.ase.dms.entities.FolderEntity;
 import com.ase.dms.exceptions.DocumentNotFoundException;
 import com.ase.dms.exceptions.DocumentUploadException;
 import com.ase.dms.exceptions.FolderNotFoundException;
+import com.ase.dms.exceptions.MinIOSetObjectDataException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
@@ -81,7 +82,13 @@ public class DocumentServiceImpl implements DocumentService {
       minIOService.setObject(doc.getId(), file.getBytes());
 
       return documents.save(doc);
-    } catch (Exception e) {
+    }
+
+    catch (MinIOSetObjectDataException e) {
+      throw e;
+    }
+
+    catch (Exception e) {
       throw new DocumentUploadException(
           "Failed to process uploaded file: " + file.getOriginalFilename(), e);
     }

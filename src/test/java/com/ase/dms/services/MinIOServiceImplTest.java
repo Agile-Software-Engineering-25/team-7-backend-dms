@@ -66,7 +66,8 @@ class MinIOServiceImplTest {
           System.arraycopy(data, 0, buffer, 0, data.length);
           dataRead = true;
           return data.length;
-        } else {
+        }
+        else {
           return -1; // end-of-stream
         }
       }

@@ -46,7 +46,8 @@ public class FolderServiceImpl implements FolderService {
     if (ROOT_ID.equals(id)) {
       folder = folders.findByNameAndParentIsNull(ROOT_ID)
           .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
-    } else {
+    }
+    else {
       UuidValidator.validateOrThrow(id);
       folder = folders.findById(id)
           .orElseThrow(() -> new FolderNotFoundException("Ordner " + id + " nicht gefunden"));
