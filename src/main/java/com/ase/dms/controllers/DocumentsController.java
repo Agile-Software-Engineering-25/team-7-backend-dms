@@ -87,7 +87,9 @@ public class DocumentsController {
 
   @Operation(summary = "Download document file")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "File downloaded successfully", content = @Content(mediaType = "application/octet-stream", schema = @Schema(type = "string", format = "binary"))),
+      @ApiResponse(responseCode = "200", description = "File downloaded successfully",
+          content = @Content(mediaType = "application/octet-stream",
+              schema = @Schema(type = "string", format = "binary"))),
       @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
   })
   @GetMapping("/{id}/download")
@@ -99,7 +101,8 @@ public class DocumentsController {
     HttpHeaders headers = new HttpHeaders();
     if (document.getType() != null && !document.getType().isEmpty()) {
       headers.setContentType(MediaType.parseMediaType(document.getType()));
-    } else {
+    }
+    else {
       headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
     }
 

@@ -24,6 +24,8 @@ public class MinIOServiceImpl implements MinIOService {
   @Autowired
   private final MinioConfig minioConfig;
 
+  private static final int BUFFER_SIZE = 8192;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MinIOServiceImpl.class);
 
   public MinIOServiceImpl(MinioConfig minioConfig) {
@@ -39,15 +41,15 @@ public class MinIOServiceImpl implements MinIOService {
             .build());
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-      byte[] buffer = new byte[8192];
+
+      byte[] buffer = new byte[BUFFER_SIZE];
       int bytesRead;
       while ((bytesRead = stream.read(buffer)) != -1) {
         baos.write(buffer, 0, bytesRead);
       }
-
       return baos.toByteArray();
-
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       LOGGER.error("getObjectData failed", e);
       throw new MinIOGetObjectDataException(fileId, e);
     }
@@ -64,7 +66,8 @@ public class MinIOServiceImpl implements MinIOService {
               .object(objectName)
               .build());
 
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       LOGGER.error("Failed to delete File with ID: ${objectName}", e);
       throw new MinIODeleteObjectDataException(objectName, e);
     }
@@ -86,8 +89,8 @@ public class MinIOServiceImpl implements MinIOService {
               .stream(inputStream, size, partSize)
               .contentType("application/octet-stream")
               .build());
-    } catch (
-    Exception e) {
+    }
+    catch (Exception e) {
       LOGGER.error("Failed to save Data with ID: ", e);
       throw new MinIOSetObjectDataException(objectName, e);
     }
