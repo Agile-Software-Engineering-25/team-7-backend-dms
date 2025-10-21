@@ -1,8 +1,10 @@
 package com.ase.dms.services;
 
 import com.ase.dms.config.MinioConfig;
+import com.ase.dms.exceptions.MinIODeleteObjectDataException;
 import com.ase.dms.exceptions.MinIOGetObjectDataException;
 
+import com.ase.dms.exceptions.MinIOSetObjectDataException;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectResponse;
 import io.minio.PutObjectArgs;
@@ -106,7 +108,7 @@ class MinIOServiceImplTest {
 
     doThrow(new IOException("Put failed")).when(minioClient).putObject(any(PutObjectArgs.class));
 
-    assertThrows(MinIOGetObjectDataException.class, () -> minIOService.setObject(objectName, data));
+    assertThrows(MinIOSetObjectDataException.class, () -> minIOService.setObject(objectName, data));
   }
 
   // DELETE OBJECT
@@ -127,6 +129,6 @@ class MinIOServiceImplTest {
 
     doThrow(new IOException("Delete failed")).when(minioClient).removeObject(any(RemoveObjectArgs.class));
 
-    assertThrows(MinIOGetObjectDataException.class, () -> minIOService.deleteObject(objectName));
+    assertThrows(MinIODeleteObjectDataException.class, () -> minIOService.deleteObject(objectName));
   }
 }
