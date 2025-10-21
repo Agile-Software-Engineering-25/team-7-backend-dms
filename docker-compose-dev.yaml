@@ -1,15 +1,6 @@
 services:
-  dms:
-    image: dms-local
-    container_name: dms
-    ports:
-      - "8080:8080"
-    depends_on:
-      - minio
-      - minio-setup
-
   minio:
-    image: minio/mc:latest
+    image: minio/minio:latest
     container_name: minio
     ports:
       - "9000:9000"
@@ -27,7 +18,7 @@ services:
       retries: 3
 
   minio-setup:
-    image: minio/setup:latest
+    image: minio/mc:latest
     container_name: minio-setup
     volumes:
       - ./dev/minio/scripts:/scripts
@@ -36,8 +27,8 @@ services:
     depends_on:
       - minio
     environment:
-      MINIO_ROOT_USER: :minioadmin
-      MINIO_ROOT_PASSWORD: :minioadmin
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     entrypoint: >
       /bin/sh -c "
       sleep 10;

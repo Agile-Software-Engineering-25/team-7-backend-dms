@@ -27,6 +27,6 @@ logging:
 
 minio:
   endpoint: ${MINIO_ENDPOINT:localhost}
-  access-key: ${MINIO_ACCESS_KEY:minioadmin}
-  access-secret: ${MINIO_SECRET_KEY:minioadmin}
-  bucketName: ${MINIO_BUCKET_NAME:documents}
+  access-key: ${MINIO_ACCESS_KEY:test}
+  access-secret: ${MINIO_SECRET_KEY:testpassword}
+  bucketName: ${MINIO_BUCKET_NAME:test}
