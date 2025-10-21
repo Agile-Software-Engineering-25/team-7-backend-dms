@@ -9,7 +9,7 @@ public class MinIOSetObjectDataException extends DmsException {
 
   public MinIOSetObjectDataException(String documentId, Throwable cause) {
     super(ErrorCodes.SYS_INTERNAL_ERROR,
-        "Document with ID '" + documentId + "' could not be retrieved.",
+        "Document with ID '" + documentId + "' could not be uploaded.",
         cause);
   }
 }

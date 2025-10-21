@@ -1,8 +1,10 @@
 package com.ase.dms.services;
 
 import com.ase.dms.config.MinioConfig;
+import com.ase.dms.exceptions.MinIODeleteObjectDataException;
 import com.ase.dms.exceptions.MinIOGetObjectDataException;
 
+import com.ase.dms.exceptions.MinIOSetObjectDataException;
 import io.minio.GetObjectArgs;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
@@ -29,11 +31,11 @@ public class MinIOServiceImpl implements MinIOService {
   }
 
   @Override
-  public byte[] getObjectData(String objectName) {
+  public byte[] getObjectData(String fileId) {
     try (InputStream stream = minioConfig.minioClient().getObject(
         GetObjectArgs.builder()
             .bucket(minioConfig.getBucketName())
-            .object(objectName)
+            .object(fileId)
             .build());
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -64,7 +66,7 @@ public class MinIOServiceImpl implements MinIOService {
        */
 
       LOGGER.error("getObjectData failed", e);
-      throw new MinIOGetObjectDataException(objectName);
+      throw new MinIOGetObjectDataException(fileId);
     }
   }
 
@@ -97,8 +99,8 @@ public class MinIOServiceImpl implements MinIOService {
        * ServerException
        */
 
-      LOGGER.error("getObjectData failed", e);
-      throw new MinIOGetObjectDataException(objectName);
+      LOGGER.error("Failed to delete File with ID: ${objectName}", e);
+      throw new MinIODeleteObjectDataException(objectName);
     }
   }
 
@@ -139,8 +141,8 @@ public class MinIOServiceImpl implements MinIOService {
        * ServerException
        */
 
-      LOGGER.error("setObject failed", e);
-      throw new MinIOGetObjectDataException(objectName);
+      LOGGER.error("Failed to save Data with ID: ", e);
+      throw new MinIOSetObjectDataException(objectName);
     }
   }
 
