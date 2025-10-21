@@ -66,7 +66,7 @@ public class MinIOServiceImpl implements MinIOService {
        */
 
       LOGGER.error("getObjectData failed", e);
-      throw new MinIOGetObjectDataException(fileId);
+      throw new MinIOGetObjectDataException(fileId, e);
     }
   }
 
@@ -100,7 +100,7 @@ public class MinIOServiceImpl implements MinIOService {
        */
 
       LOGGER.error("Failed to delete File with ID: ${objectName}", e);
-      throw new MinIODeleteObjectDataException(objectName);
+      throw new MinIODeleteObjectDataException(objectName, e);
     }
   }
 
@@ -121,11 +121,13 @@ public class MinIOServiceImpl implements MinIOService {
               .contentType("application/octet-stream")
               .build());
 
+     // TODO: ConnectException - thrown to indicate connection error to S3 service.
     } catch (
 
     Exception e) {
 
       /**
+       * ConnectException - thrown to indicate connection error to S3 service.
        * ErrorResponseException - thrown to indicate S3 service returned an error
        * response.
        * InsufficientDataException - thrown to indicate not enough data available in
@@ -142,7 +144,7 @@ public class MinIOServiceImpl implements MinIOService {
        */
 
       LOGGER.error("Failed to save Data with ID: ", e);
-      throw new MinIOSetObjectDataException(objectName);
+      throw new MinIOSetObjectDataException(objectName, e);
     }
   }
 
