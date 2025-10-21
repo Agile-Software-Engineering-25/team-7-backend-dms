@@ -48,23 +48,6 @@ public class MinIOServiceImpl implements MinIOService {
       return baos.toByteArray();
 
     } catch (Exception e) {
-
-      /**
-       * ErrorResponseException - thrown to indicate S3 service returned an error
-       * response.
-       * InsufficientDataException - thrown to indicate not enough data available in
-       * InputStream.
-       * InternalException - thrown to indicate internal library error.
-       * InvalidKeyException - thrown to indicate missing of HMAC SHA-256 library.
-       * InvalidResponseException - thrown to indicate S3 service returned invalid or
-       * no error response.
-       * IOException - thrown to indicate I/O error on S3 operation.
-       * NoSuchAlgorithmException - thrown to indicate missing of MD5 or SHA-256
-       * digest library.
-       * XmlParserException - thrown to indicate XML parsing error.
-       * ServerException
-       */
-
       LOGGER.error("getObjectData failed", e);
       throw new MinIOGetObjectDataException(fileId, e);
     }
@@ -82,23 +65,6 @@ public class MinIOServiceImpl implements MinIOService {
               .build());
 
     } catch (Exception e) {
-
-      /**
-       * ErrorResponseException - thrown to indicate S3 service returned an error
-       * response.
-       * InsufficientDataException - thrown to indicate not enough data available in
-       * InputStream.
-       * InternalException - thrown to indicate internal library error.
-       * InvalidKeyException - thrown to indicate missing of HMAC SHA-256 library.
-       * InvalidResponseException - thrown to indicate S3 service returned invalid or
-       * no error response.
-       * IOException - thrown to indicate I/O error on S3 operation.
-       * NoSuchAlgorithmException - thrown to indicate missing of MD5 or SHA-256
-       * digest library.
-       * XmlParserException - thrown to indicate XML parsing error.
-       * ServerException
-       */
-
       LOGGER.error("Failed to delete File with ID: ${objectName}", e);
       throw new MinIODeleteObjectDataException(objectName, e);
     }
@@ -120,29 +86,8 @@ public class MinIOServiceImpl implements MinIOService {
               .stream(inputStream, size, partSize)
               .contentType("application/octet-stream")
               .build());
-
-     // TODO: ConnectException - thrown to indicate connection error to S3 service.
     } catch (
-
     Exception e) {
-
-      /**
-       * ConnectException - thrown to indicate connection error to S3 service.
-       * ErrorResponseException - thrown to indicate S3 service returned an error
-       * response.
-       * InsufficientDataException - thrown to indicate not enough data available in
-       * InputStream.
-       * InternalException - thrown to indicate internal library error.
-       * InvalidKeyException - thrown to indicate missing of HMAC SHA-256 library.
-       * InvalidResponseException - thrown to indicate S3 service returned invalid or
-       * no error response.
-       * IOException - thrown to indicate I/O error on S3 operation.
-       * NoSuchAlgorithmException - thrown to indicate missing of MD5 or SHA-256
-       * digest library.
-       * XmlParserException - thrown to indicate XML parsing error.
-       * ServerException
-       */
-
       LOGGER.error("Failed to save Data with ID: ", e);
       throw new MinIOSetObjectDataException(objectName, e);
     }
