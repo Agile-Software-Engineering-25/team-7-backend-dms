@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,13 +25,19 @@ public class FolderServiceImpl implements FolderService {
 
   private final FolderRepository folders;
 
+ @Autowired
+  private final MinIOService minIOService;
+
   /**
    * Constructor for FolderServiceImpl.
    *
    * @param folders the folder repository
    */
-  public FolderServiceImpl(final FolderRepository folders) {
+  public FolderServiceImpl(final FolderRepository folders,
+   final MinIOService minIOService
+  ) {
     this.folders = folders;
+    this.minIOService = minIOService;
   }
 
   /**
@@ -132,12 +139,21 @@ public class FolderServiceImpl implements FolderService {
   @Transactional
   public void deleteFolder(final String id) {
     UuidValidator.validateOrThrow(id);
-    if (!folders.existsById(id)) {
-      throw new FolderNotFoundException(id);
-    }
+
+    // To delete all the data from minio,
+    // we would need to manually traverse
+    // and delete documents first.
+    FolderEntity folder = getFolderContents(id);
+
+    deleteDocumentsRecursively(folder);
 
     // With JPA cascade operations, deleting the folder will automatically
     // delete all subfolders and documents - no warnings
     folders.deleteById(id);
+  }
+
+  private void deleteDocumentsRecursively(FolderEntity folder) {
+    folder.getSubfolders().forEach(this::deleteDocumentsRecursively);
+    folder.getDocuments().forEach(doc -> minIOService.deleteObject(doc.getId()));
   }
 }
