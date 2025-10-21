@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Configuration;
 public class MinioConfig {
 
   private String endpoint;
+  private int port;
+  private boolean tls;
   private String accessKey;
   private String accessSecret;
   private String bucketName;
@@ -21,7 +23,7 @@ public class MinioConfig {
   @Bean
   public MinioClient minioClient() {
     return MinioClient.builder()
-        .endpoint(endpoint)
+        .endpoint(endpoint, port, tls)
         .credentials(accessKey, accessSecret)
         .build();
   }
