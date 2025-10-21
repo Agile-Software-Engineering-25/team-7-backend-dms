@@ -7,7 +7,6 @@ import com.ase.dms.repositories.FolderRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -174,31 +173,31 @@ class FolderServiceImplTest {
 
   @Test
   void deleteFolder_existing_deletes() {
-    FolderEntity sub_folder = new FolderEntity();
-    sub_folder.setId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
-    sub_folder.setName("Sub");
-    sub_folder.setParentId("00000000-0000-0000-0000-000000000000");
-    sub_folder.setCreatedDate(LocalDateTime.now());
+    FolderEntity subFolder = new FolderEntity();
+    subFolder.setId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
+    subFolder.setName("Sub");
+    subFolder.setParentId("00000000-0000-0000-0000-000000000000");
+    subFolder.setCreatedDate(LocalDateTime.now());
 
     List<FolderEntity> subs = new ArrayList<>();
-    subs.add(sub_folder);
+    subs.add(subFolder);
 
-    FolderEntity existing_root = new FolderEntity();
-    existing_root.setId("00000000-0000-0000-0000-000000000000");
-    existing_root.setName("root");
-    existing_root.setParentId(null);
-    existing_root.setCreatedDate(LocalDateTime.now());
-    existing_root.setSubfolders(subs);
+    FolderEntity existingRoot = new FolderEntity();
+    existingRoot.setId("00000000-0000-0000-0000-000000000000");
+    existingRoot.setName("root");
+    existingRoot.setParentId(null);
+    existingRoot.setCreatedDate(LocalDateTime.now());
+    existingRoot.setSubfolders(subs);
 
     DocumentEntity rootDoc = new DocumentEntity();
     rootDoc.setId("doc-root");
-    existing_root.getDocuments().add(rootDoc);
+    existingRoot.getDocuments().add(rootDoc);
 
     DocumentEntity subDoc = new DocumentEntity();
     subDoc.setId("doc-sub");
-    sub_folder.getDocuments().add(subDoc);
+    subFolder.getDocuments().add(subDoc);
 
-    when(folderRepository.findById("00000000-0000-0000-0000-000000000000")).thenReturn(Optional.of(existing_root));
+    when(folderRepository.findById("00000000-0000-0000-0000-000000000000")).thenReturn(Optional.of(existingRoot));
     folderService.deleteFolder("00000000-0000-0000-0000-000000000000");
 
     verify(minIOService, times(2)).deleteObject(anyString());
@@ -208,7 +207,8 @@ class FolderServiceImplTest {
   @Test
   void deleteFolder_nonExisting_throws() {
     String nonExistingId = "12345678-1234-1234-1234-1234567890ab";
-    when(folderRepository.findById(nonExistingId)).thenThrow(new FolderNotFoundException("Ordner " + nonExistingId + " nicht gefunden"));
+    when(folderRepository.findById(nonExistingId))
+        .thenThrow(new FolderNotFoundException("Ordner " + nonExistingId + " nicht gefunden"));
 
     FolderNotFoundException ex = assertThrows(FolderNotFoundException.class,
         () -> folderService.deleteFolder(nonExistingId));
