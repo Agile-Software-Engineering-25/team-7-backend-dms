@@ -39,6 +39,10 @@ echo "Creating test user"
 mc admin user add minio "test" "testpassword"
 mc admin policy attach minio test --user "test"
 
+# Verbose logs
+echo "Enabling verbose logging for MinIO..."
+mc admin trace -v minio
+
 echo "Setup complete!"
 echo "==========================="
 echo "MinIO Console: http://localhost:9001"
