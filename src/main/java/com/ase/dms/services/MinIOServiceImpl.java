@@ -12,7 +12,14 @@ import io.minio.RemoveObjectArgs;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
+import io.minio.RemoveObjectsArgs;
+import io.minio.Result;
+import io.minio.messages.DeleteError;
+import io.minio.messages.DeleteObject;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
