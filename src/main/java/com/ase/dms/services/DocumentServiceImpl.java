@@ -164,10 +164,6 @@ public class DocumentServiceImpl implements DocumentService {
       existing.setFolder(newFolder);
     }
 
-    if (incoming.getOwnerId() != null) {
-      existing.setOwnerId(incoming.getOwnerId());
-    }
-
     return documents.save(existing);
   }
 
