@@ -23,7 +23,6 @@ services:
     volumes:
       - ./dev/minio/scripts:/scripts
       - ./dev/minio/policies:/policies
-      - ./dev/minio/users:/users
     depends_on:
       - minio
     environment:
