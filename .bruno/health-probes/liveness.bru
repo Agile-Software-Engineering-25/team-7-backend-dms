@@ -1,0 +1,12 @@
+meta {
+  name: liveness
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/dms/actuator/health/liveness
+  body: none
+  auth: none
+}
+

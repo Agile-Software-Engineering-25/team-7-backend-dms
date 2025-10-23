@@ -22,7 +22,6 @@ public class SecurityConfig {
     JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
     jwtConverter.setJwtGrantedAuthoritiesConverter(new JwtAuthConverter());
 
-    //the role always has to be capitalized
     http
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorize -> authorize
@@ -32,9 +31,9 @@ public class SecurityConfig {
 
             // Read-only access for Students (GET methods only)
             .requestMatchers(HttpMethod.GET, "/v1/documents/**")
-            .hasAnyRole("Area-2.Team-7.Read.read-document")
+            .hasAnyRole("Area-2.Team-7.Read.read-document", "Area-2.Team-7.ReadUpdateDelete.readwrite-document")
             .requestMatchers(HttpMethod.GET, "/v1/folders/**")
-            .hasAnyRole("Area-2.Team-7.Read.read-document")
+            .hasAnyRole("Area-2.Team-7.Read.read-document", "Area-2.Team-7.ReadUpdateDelete.readwrite-document")
 
             // Write access (POST, PATCH, DELETE) - only for non-Student roles
             .requestMatchers(HttpMethod.POST, "/v1/documents/**")
