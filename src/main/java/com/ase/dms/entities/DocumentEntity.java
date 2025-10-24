@@ -29,21 +29,26 @@ public class DocumentEntity {
 
   @NotBlank
   @Size(min = 1, max = 255)
-  @Schema(description = "Name des Dokuments", example = "wichtiges_dokument")
+  @Schema(description = "Name des Dokuments",
+      example = "wichtiges_dokument")
   private String name;
 
   @NotBlank
-  @Schema(description = "Dateityp", example = "pdf")
+  @Schema(description = "Dateityp",
+   example = "pdf")
   private String type;
 
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateigröße in Bytes")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+   description = "Dateigröße in Bytes")
   private long size;
 
-  @Schema(description = "ID des Besitzers (User) des Dokuments", example = "9ad5c7cf-273c-4243-91a3-f7969f6dc985")
+  @Schema(description = "ID des Besitzers (User) des Dokuments",
+   example = "9ad5c7cf-273c-4243-91a3-f7969f6dc985")
   private String ownerId;
 
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Erstellungsdatum")
+  @Schema(accessMode = Schema.AccessMode.READ_ONLY,
+   description = "Erstellungsdatum")
   private LocalDateTime createdDate;
 
   @Schema(accessMode = Schema.AccessMode.READ_ONLY,
@@ -51,18 +56,14 @@ public class DocumentEntity {
       example = "https://sau-portal.de/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download")
   private String downloadUrl;
 
-  @Lob
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateiinhalt")
-  private byte[] data;
-
   // JPA Relationship
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "folderId")
   @JsonBackReference("folder-documents")
   @ToString.Exclude
   @Schema(hidden = true,
-      description = "ID des übergeordneten Ordners als JPA Reference",
-      example = "ef9b2274-817e-4cba-879e-383548577f4e")
+   description = "ID des übergeordneten Ordners als JPA Reference",
+    example = "ef9b2274-817e-4cba-879e-383548577f4e")
   private FolderEntity folder;
 
   // Convenience method to get folder ID without loading the entity
@@ -71,7 +72,7 @@ public class DocumentEntity {
   }
 
   @Schema(description = "ID of the parent folder",
-      example = "ef9b2274-817e-4cba-879e-383548577f4e")
+   example = "ef9b2274-817e-4cba-879e-383548577f4e")
   public void setFolderId(String folderId) {
     if (folderId != null) {
       this.folder = new FolderEntity();
@@ -81,5 +82,4 @@ public class DocumentEntity {
       this.folder = null;
     }
   }
-
 }

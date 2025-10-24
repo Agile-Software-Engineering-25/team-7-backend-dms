@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class NameIncrementHelperTest {
   private static final long TEST_SIZE = 1024L;
+
   @Test
   void testGetIncrementedName_noConflict() {
     Set<String> names = new HashSet<>(Arrays.asList("file.txt", "other.txt"));
@@ -66,7 +67,6 @@ class NameIncrementHelperTest {
     d1.setOwnerId("owner");
     d1.setCreatedDate(LocalDateTime.now());
     d1.setDownloadUrl("url");
-    d1.setData(new byte[0]);
 
     DocumentEntity d2 = new DocumentEntity();
     d2.setId("2");
@@ -77,7 +77,6 @@ class NameIncrementHelperTest {
     d2.setOwnerId("owner");
     d2.setCreatedDate(LocalDateTime.now());
     d2.setDownloadUrl("url");
-    d2.setData(new byte[0]);
 
     DocumentEntity d3 = new DocumentEntity();
     d3.setId("3");
@@ -88,7 +87,6 @@ class NameIncrementHelperTest {
     d3.setOwnerId("owner");
     d3.setCreatedDate(LocalDateTime.now());
     d3.setDownloadUrl("url");
-    d3.setData(new byte[0]);
 
     List<DocumentEntity> docs = Arrays.asList(d1, d2, d3);
     Set<String> names = NameIncrementHelper.collectSiblingNames(docs, "folder1", null);

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,30 +25,39 @@ public class FolderServiceImpl implements FolderService {
 
   private final FolderRepository folders;
 
+ @Autowired
+  private final MinIOService minIOService;
+
   /**
    * Constructor for FolderServiceImpl.
+   *
    * @param folders the folder repository
    */
-  public FolderServiceImpl(final FolderRepository folders) {
+  public FolderServiceImpl(final FolderRepository folders,
+   final MinIOService minIOService
+  ) {
     this.folders = folders;
+    this.minIOService = minIOService;
   }
 
   /**
    * Retrieves the contents of a folder by ID or 'root'.
+   *
    * @param id the folder UUID or 'root'
-   * @return FolderEntity with subfolders and documents accessible via JPA relationships
+   * @return FolderEntity with subfolders and documents accessible via JPA
+   *         relationships
    */
   @Override
   public FolderEntity getFolderContents(final String id) {
     FolderEntity folder;
     if (ROOT_ID.equals(id)) {
       folder = folders.findByNameAndParentIsNull(ROOT_ID)
-        .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
+          .orElseThrow(() -> new FolderNotFoundException("Root folder not found"));
     }
     else {
       UuidValidator.validateOrThrow(id);
       folder = folders.findById(id)
-        .orElseThrow(() -> new FolderNotFoundException("Ordner "+ id + " nicht gefunden"));
+          .orElseThrow(() -> new FolderNotFoundException("Ordner " + id + " nicht gefunden"));
     }
 
     // JPA relationships automatically provides access to subfolders and documents
@@ -56,6 +66,7 @@ public class FolderServiceImpl implements FolderService {
 
   /**
    * Creates a new folder.
+   *
    * @param folder the folder entity to create
    * @return the created FolderEntity
    */
@@ -84,7 +95,8 @@ public class FolderServiceImpl implements FolderService {
 
   /**
    * Updates an existing folder.
-   * @param id the folder UUID
+   *
+   * @param id       the folder UUID
    * @param incoming the folder entity with updates
    * @return the updated FolderEntity
    */
@@ -118,19 +130,30 @@ public class FolderServiceImpl implements FolderService {
 
   /**
    * Deletes a folder by ID with JPA cascade handling.
-   * JPA will automatically delete all subfolders and documents due to cascade configuration.
+   * JPA will automatically delete all subfolders and documents due to cascade
+   * configuration.
+   *
    * @param id the folder UUID
    */
   @Override
   @Transactional
   public void deleteFolder(final String id) {
     UuidValidator.validateOrThrow(id);
-    if (!folders.existsById(id)) {
-      throw new FolderNotFoundException(id);
-    }
+
+    // To delete all the data from minio,
+    // we would need to manually traverse
+    // and delete documents first.
+    FolderEntity folder = getFolderContents(id);
+
+    deleteDocumentsRecursively(folder);
 
     // With JPA cascade operations, deleting the folder will automatically
     // delete all subfolders and documents - no warnings
     folders.deleteById(id);
+  }
+
+  private void deleteDocumentsRecursively(FolderEntity folder) {
+    folder.getSubfolders().forEach(this::deleteDocumentsRecursively);
+    folder.getDocuments().forEach(doc -> minIOService.deleteObject(doc.getId()));
   }
 }

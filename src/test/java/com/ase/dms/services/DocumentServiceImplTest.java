@@ -29,11 +29,14 @@ class DocumentServiceImplTest {
   @Mock
   private com.ase.dms.repositories.FolderRepository folderRepository;
 
+  @Mock
+  private com.ase.dms.services.MinIOService minIOService;
+
   private DocumentServiceImpl service;
 
   @BeforeEach
   void setUp() {
-    service = new DocumentServiceImpl(documentRepository, folderRepository);
+    service = new DocumentServiceImpl(documentRepository, folderRepository, minIOService);
   }
 
   @Test
@@ -48,7 +51,6 @@ class DocumentServiceImplTest {
     doc.setOwnerId("owner-id");
     doc.setCreatedDate(LocalDateTime.now());
     doc.setDownloadUrl("/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download");
-    doc.setData(new byte[0]);
 
     when(documentRepository.findById("4111b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(doc));
 
@@ -74,8 +76,7 @@ class DocumentServiceImplTest {
   void testCreateDocument_addsDocumentSuccessfully() {
     // Arrange Upload-Datei
     MockMultipartFile file = new MockMultipartFile(
-      "file", "testfile.txt", "text/plain", "Hello World".getBytes()
-    );
+        "file", "testfile.txt", "text/plain", "Hello World".getBytes());
 
     // Mock the folder that the document will be created in
     com.ase.dms.entities.FolderEntity mockFolder = new com.ase.dms.entities.FolderEntity();
@@ -91,7 +92,8 @@ class DocumentServiceImplTest {
     // Act
     DocumentEntity created = service.createDocument(file, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
 
-    // Damit der folgende getDocument()-Aufruf klappt, stubben wir findById() mit der neuen ID:
+    // Damit der folgende getDocument()-Aufruf klappt, stubben wir findById() mit
+    // der neuen ID:
     when(documentRepository.findById(created.getId())).thenReturn(Optional.of(created));
 
     // Assert
@@ -117,10 +119,10 @@ class DocumentServiceImplTest {
     when(folderRepository.findById("f1e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder));
 
     MockMultipartFile file1 = new MockMultipartFile(
-      "file",
-      "conflict.txt",
-      "text/plain",
-      "Hello".getBytes());
+        "file",
+        "conflict.txt",
+        "text/plain",
+        "Hello".getBytes());
     DocumentEntity doc1 = service.createDocument(file1, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("conflict.txt", doc1.getName());
 
@@ -129,10 +131,10 @@ class DocumentServiceImplTest {
     when(folderRepository.findById("f1e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder));
 
     MockMultipartFile file2 = new MockMultipartFile(
-      "file",
-      "conflict.txt",
-      "text/plain",
-      "World".getBytes());
+        "file",
+        "conflict.txt",
+        "text/plain",
+        "World".getBytes());
     DocumentEntity doc2 = service.createDocument(file2, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("conflict (1).txt", doc2.getName());
 
@@ -141,10 +143,10 @@ class DocumentServiceImplTest {
     when(folderRepository.findById("f1e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder));
 
     MockMultipartFile file3 = new MockMultipartFile(
-      "file",
-      "conflict.txt",
-      "text/plain",
-      "Again".getBytes());
+        "file",
+        "conflict.txt",
+        "text/plain",
+        "Again".getBytes());
     DocumentEntity doc3 = service.createDocument(file3, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("conflict (2).txt", doc3.getName());
   }
@@ -163,10 +165,10 @@ class DocumentServiceImplTest {
     when(folderRepository.findById("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder1));
 
     MockMultipartFile file1 = new MockMultipartFile(
-      "file",
-      "update.txt",
-      "text/plain",
-      "Hello".getBytes());
+        "file",
+        "update.txt",
+        "text/plain",
+        "Hello".getBytes());
     DocumentEntity doc1 = service.createDocument(file1, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
 
     // Second document: folder now contains doc1
@@ -174,10 +176,10 @@ class DocumentServiceImplTest {
     when(folderRepository.findById("f2e1b676-474c-4014-a7ee-53fc5cb90127")).thenReturn(Optional.of(mockFolder1));
 
     MockMultipartFile file2 = new MockMultipartFile(
-      "file",
-      "update.txt",
-      "text/plain",
-      "World".getBytes());
+        "file",
+        "update.txt",
+        "text/plain",
+        "World".getBytes());
     DocumentEntity doc2 = service.createDocument(file2, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
     assertEquals("update (1).txt", doc2.getName());
 
@@ -205,9 +207,9 @@ class DocumentServiceImplTest {
     original.setOwnerId("owner-id");
     original.setCreatedDate(LocalDateTime.now());
     original.setDownloadUrl("/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download");
-    original.setData(new byte[0]);
 
-    // Mock the folder for validation during update - initialize with empty documents list
+    // Mock the folder for validation during update - initialize with empty
+    // documents list
     com.ase.dms.entities.FolderEntity mockFolder = new com.ase.dms.entities.FolderEntity();
     mockFolder.setId("f1e1b676-474c-4014-a7ee-53fc5cb90127");
     mockFolder.setName("Test Folder");
@@ -243,7 +245,6 @@ class DocumentServiceImplTest {
     dummy.setOwnerId("owner");
     dummy.setCreatedDate(LocalDateTime.now());
     dummy.setDownloadUrl("url");
-    dummy.setData(new byte[0]);
 
     RuntimeException exception = assertThrows(RuntimeException.class, () -> service.updateDocument(nonId, dummy));
     assertTrue(exception.getMessage().contains(nonId));
@@ -260,9 +261,8 @@ class DocumentServiceImplTest {
     service.deleteDocument("4111b676-474c-4014-a7ee-53fc5cb90127");
 
     // Assert: getDocument auf gelöschte ID wirft Exception
-    RuntimeException exception = assertThrows(RuntimeException.class, () ->
-        service.getDocument("4111b676-474c-4014-a7ee-53fc5cb90127")
-    );
+    RuntimeException exception = assertThrows(RuntimeException.class,
+        () -> service.getDocument("4111b676-474c-4014-a7ee-53fc5cb90127"));
     assertTrue(exception.getMessage().contains("4111b676-474c-4014-a7ee-53fc5cb90127"));
 
     verify(documentRepository).deleteById("4111b676-474c-4014-a7ee-53fc5cb90127");
