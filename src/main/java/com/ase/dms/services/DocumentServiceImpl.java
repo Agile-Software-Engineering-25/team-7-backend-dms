@@ -98,7 +98,7 @@ public class DocumentServiceImpl implements DocumentService {
       }
       doc.setDownloadUrl(downloadUrl);
 
-      doc.setData(file.getBytes());
+      minIOService.setObject(doc.getId(), file.getBytes());
 
       return documents.save(doc);
     }

@@ -56,10 +56,6 @@ public class DocumentEntity {
       example = "https://sau-portal.de/dms/v1/documents/4111b676-474c-4014-a7ee-53fc5cb90127/download")
   private String downloadUrl;
 
-  @Lob
-  @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Dateiinhalt")
-  private byte[] data;
-
   // JPA Relationship
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "folderId")
