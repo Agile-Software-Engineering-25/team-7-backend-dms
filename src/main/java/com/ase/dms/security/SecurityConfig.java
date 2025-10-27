@@ -54,6 +54,7 @@ public class SecurityConfig {
             .anyRequest().authenticated())
         .oauth2ResourceServer(oauth2 -> oauth2
             .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
+        .headers(h -> h.frameOptions(f -> f.disable())); 
     return http.build();
   }
 
