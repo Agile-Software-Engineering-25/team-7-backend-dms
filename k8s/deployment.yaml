@@ -45,6 +45,8 @@ spec:
         envFrom:
         - configMapRef:
             name: dms-backend-basic
+        - configMapRef:
+            name: min-io
 
         volumeMounts:
         - name: tmp-volume
