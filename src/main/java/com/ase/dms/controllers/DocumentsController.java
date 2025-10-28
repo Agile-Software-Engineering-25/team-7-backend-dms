@@ -158,8 +158,10 @@ public class DocumentsController {
     }
 
     // Supported input types/extensions (common office types)
-    boolean supported = type.contains("msword") || type.contains("officedocument") ||
-        type.contains("vnd.openxmlformats-officedocument") || name.toLowerCase(Locale.ROOT).matches(".*\\.(doc|docx|xls|xlsx|ppt|pptx)$");
+    boolean supported = type.contains("msword")
+        || type.contains("officedocument")
+        || type.contains("vnd.openxmlformats-officedocument")
+        || name.toLowerCase(Locale.ROOT).matches(".*\\.(doc|docx|xls|xlsx|ppt|pptx)$");
 
     if (!supported) {
       // Not supported for conversion; return 415 Unsupported Media Type
@@ -219,7 +221,8 @@ public class DocumentsController {
 
       return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
 
-    } catch (OfficeException | IOException e) {
+    }
+    catch (OfficeException | IOException e) {
       // Conversion failed
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }

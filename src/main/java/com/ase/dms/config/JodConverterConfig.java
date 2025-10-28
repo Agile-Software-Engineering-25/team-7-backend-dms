@@ -20,11 +20,11 @@ import org.slf4j.LoggerFactory;
 @Configuration
 public class JodConverterConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(JodConverterConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JodConverterConfig.class);
 
     @Bean(destroyMethod = "stop")
     public LocalOfficeManager officeManager(@Value("${office.home:${OFFICE_HOME:}}") String officeHome) {
-        logger.info("Configuring LocalOfficeManager with officeHome='{}'", officeHome);
+        LOGGER.info("Configuring LocalOfficeManager with officeHome='{}'", officeHome);
         LocalOfficeManager.Builder builder = LocalOfficeManager.builder();
         if (officeHome != null && !officeHome.isBlank()) {
             builder.officeHome(new File(officeHome));
@@ -33,7 +33,8 @@ public class JodConverterConfig {
         // start manager now so that the bean is ready for conversions
         try {
             manager.start();
-        } catch (OfficeException e) {
+        }
+        catch (OfficeException e) {
             throw new IllegalStateException("Could not start LocalOfficeManager (officeHome='" + officeHome + "')", e);
         }
         return manager;
