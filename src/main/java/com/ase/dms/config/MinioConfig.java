@@ -22,6 +22,11 @@ public class MinioConfig {
 
   @Bean
   public MinioClient minioClient() {
+    System.out.println(endpoint);
+    System.out.println(port);
+    System.out.println(tls);
+    System.out.println(accessKey);
+
     return MinioClient.builder()
         .endpoint(endpoint, port, tls)
         .credentials(accessKey, accessSecret)
