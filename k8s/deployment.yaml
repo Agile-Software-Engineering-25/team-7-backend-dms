@@ -41,6 +41,16 @@ spec:
           value: "jdbc:postgresql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
         - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
           value: "org.postgresql.Driver"
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend
+              key: MINIO_USER
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend
+              key: MINIO_PASSWORD
 
         envFrom:
         - configMapRef:
