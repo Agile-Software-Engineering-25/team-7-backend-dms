@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.jodconverter.core.DocumentConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,11 +33,14 @@ class DocumentServiceImplTest {
   @Mock
   private com.ase.dms.services.MinIOService minIOService;
 
+  @Mock
+  private DocumentConverter documentConverter;
+
   private DocumentServiceImpl service;
 
   @BeforeEach
   void setUp() {
-    service = new DocumentServiceImpl(documentRepository, folderRepository, minIOService);
+    service = new DocumentServiceImpl(documentRepository, folderRepository, minIOService, documentConverter);
   }
 
   @Test
