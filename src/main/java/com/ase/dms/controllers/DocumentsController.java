@@ -139,10 +139,7 @@ public class DocumentsController {
   public ResponseEntity<byte[]> convertDocument(
       @Parameter(description = "Document UUID") @PathVariable String id) {
     DocumentEntity document = documentService.getDocument(id);
-
-    if (document.getData() == null || document.getData().length == 0) {
-      return ResponseEntity.notFound().build();
-    }
+    byte[] data = minIOService.getObjectData(id);
 
     // Determine if the document is an office document we can convert
     String type = document.getType() != null ? document.getType().toLowerCase(Locale.ROOT) : "";
@@ -153,8 +150,8 @@ public class DocumentsController {
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_PDF);
       headers.setContentDispositionFormData("attachment", name.endsWith(".pdf") ? name : name + ".pdf");
-      headers.setContentLength(document.getData().length);
-      return new ResponseEntity<>(document.getData(), headers, HttpStatus.OK);
+      headers.setContentLength(data.length);
+      return new ResponseEntity<>(data, headers, HttpStatus.OK);
     }
 
     // Supported input types/extensions (common office types)
@@ -168,7 +165,7 @@ public class DocumentsController {
       return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
     }
 
-    try (ByteArrayInputStream in = new ByteArrayInputStream(document.getData());
+    try (ByteArrayInputStream in = new ByteArrayInputStream(data);
          ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
       // Determine source and target document formats using the registry
