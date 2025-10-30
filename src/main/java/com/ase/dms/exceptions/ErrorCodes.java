@@ -26,6 +26,7 @@ public enum ErrorCodes {
     DOC_INVALID_TYPE(HttpStatus.BAD_REQUEST),
     DOC_SIZE_EXCEEDED(HttpStatus.PAYLOAD_TOO_LARGE),
     DOC_ACCESS_DENIED(HttpStatus.FORBIDDEN),
+    DOC_PDF_CONVERSION_FAILED(HttpStatus.UNSUPPORTED_MEDIA_TYPE),
 
     // Folder-related errors (FOLDER_*)
     FOLDER_NOT_FOUND(HttpStatus.NOT_FOUND),
