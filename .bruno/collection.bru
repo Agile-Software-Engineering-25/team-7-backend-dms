@@ -1,7 +1,18 @@
 auth {
-  mode: bearer
+  mode: oauth2
 }
 
-auth:bearer {
-  token: {{token}}
+auth:oauth2 {
+  grant_type: client_credentials
+  access_token_url: {{keycloakUrl}}
+  refresh_token_url: 
+  client_id: {{client-id}}
+  client_secret: {{client-secret}}
+  scope: 
+  credentials_placement: body
+  credentials_id: credentials
+  token_placement: header
+  token_header_prefix: Bearer
+  auto_fetch_token: true
+  auto_refresh_token: false
 }

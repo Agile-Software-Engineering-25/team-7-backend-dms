@@ -2,6 +2,7 @@ package com.ase.dms.controllers;
 
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.services.DocumentService;
+import com.ase.dms.services.MinIOService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -36,19 +37,21 @@ import java.util.Objects;
 public class DocumentsController {
 
   private final DocumentService documentService;
+  private final MinIOService minIOService;
   private final DocumentConverter documentConverter;
 
-  public DocumentsController(DocumentService documentService, DocumentConverter documentConverter) {
-     this.documentService = documentService;
-     this.documentConverter = documentConverter;
+  public DocumentsController(DocumentService documentService, MinIOService minIOService, DocumentConverter documentConverter) {
+    this.documentService = documentService;
+    this.minIOService = minIOService;
+    this.documentConverter = documentConverter;
   }
 
   @Operation(summary = "Get document by ID")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Document found"),
-    @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequestResponse"),
-    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse"),
-    @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerErrorResponse")
+      @ApiResponse(responseCode = "200", description = "Document found"),
+      @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequestResponse"),
+      @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse"),
+      @ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerErrorResponse")
   })
   @GetMapping("/{id}")
   public ResponseEntity<DocumentEntity> getDocumentById(
@@ -58,9 +61,9 @@ public class DocumentsController {
 
   @Operation(summary = "Upload a new document")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "201", description = "Document uploaded successfully"),
-    @ApiResponse(responseCode = "400", ref = "#/components/responses/DocumentUploadFailedResponse"),
-    @ApiResponse(responseCode = "413", ref = "#/components/responses/PayloadTooLargeResponse")
+      @ApiResponse(responseCode = "201", description = "Document uploaded successfully"),
+      @ApiResponse(responseCode = "400", ref = "#/components/responses/DocumentUploadFailedResponse"),
+      @ApiResponse(responseCode = "413", ref = "#/components/responses/PayloadTooLargeResponse")
   })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<DocumentEntity> uploadDocument(
@@ -72,9 +75,9 @@ public class DocumentsController {
 
   @Operation(summary = "Update document metadata")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Document updated successfully"),
-    @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationErrorResponse"),
-    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+      @ApiResponse(responseCode = "200", description = "Document updated successfully"),
+      @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationErrorResponse"),
+      @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
   })
   @PatchMapping("/{id}")
   public ResponseEntity<DocumentEntity> updateDocument(
@@ -85,9 +88,9 @@ public class DocumentsController {
 
   @Operation(summary = "Delete a document")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Document deleted successfully"),
-    @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequestResponse"),
-    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+      @ApiResponse(responseCode = "204", description = "Document deleted successfully"),
+      @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequestResponse"),
+      @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
   })
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteDocument(
@@ -98,19 +101,16 @@ public class DocumentsController {
 
   @Operation(summary = "Download document file")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "File downloaded successfully",
-                content = @Content(mediaType = "application/octet-stream",
-                          schema = @Schema(type = "string", format = "binary"))),
-    @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+      @ApiResponse(responseCode = "200", description = "File downloaded successfully",
+          content = @Content(mediaType = "application/octet-stream",
+              schema = @Schema(type = "string", format = "binary"))),
+      @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
   })
   @GetMapping("/{id}/download")
   public ResponseEntity<byte[]> downloadDocument(
       @Parameter(description = "Document UUID") @PathVariable String id) {
     DocumentEntity document = documentService.getDocument(id);
-
-    if (document.getData() == null || document.getData().length == 0) {
-      return ResponseEntity.notFound().build();
-    }
+    byte[] data = minIOService.getObjectData(id);
 
     HttpHeaders headers = new HttpHeaders();
     if (document.getType() != null && !document.getType().isEmpty()) {
@@ -122,9 +122,9 @@ public class DocumentsController {
 
     String filename = document.getName() != null ? document.getName() : "document";
     headers.setContentDispositionFormData("attachment", filename);
-    headers.setContentLength(document.getData().length);
+    headers.setContentLength(data.length);
 
-    return new ResponseEntity<>(document.getData(), headers, HttpStatus.OK);
+    return new ResponseEntity<>(data, headers, HttpStatus.OK);
   }
 
   @Operation(summary = "Convert document file to pdf")

@@ -14,6 +14,7 @@ DMS is a Spring Boot-based application designed to manage document and folder op
 
 - Java 21 or higher
 - Maven 3.8 or higher
+- Docker
 
 ## Getting Started
 
@@ -28,6 +29,17 @@ cd team-7-backend-dms
 mvn clean install
 ```
 ### Run the Application
+
+#### Dev Environment
+To run the application, you need MinIO as an S3-compatible storage. A Docker Compose file is provided for this purpose.
+
+Start MinIO in with:
+```bash
+docker compose -f docker-compose-dev.yaml up
+```
+MinIO will be available at [http://localhost:9000](http://localhost:9000) (default login: `test` / `testpassword`).
+
+#### Java
 ```bash
 mvn spring-boot:run
 ```
