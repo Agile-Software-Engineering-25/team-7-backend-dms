@@ -112,26 +112,4 @@ public class DocumentsController {
 
     return new ResponseEntity<>(data, headers, HttpStatus.OK);
   }
-
-  @Operation(summary = "Convert document file to pdf")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "File converted successfully",
-          content = @Content(mediaType = "application/octet-stream",
-              schema = @Schema(type = "string", format = "binary"))),
-      @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse"),
-      @ApiResponse(responseCode = "415", description = "Unsupported Media Type - cannot convert the provided document")
-  })
-  @GetMapping("/{id}/pdfconverter")
-  public ResponseEntity<byte[]> convertDocument(
-      @Parameter(description = "Document UUID") @PathVariable String id) {
-    DocumentEntity document = documentService.getDocument(id);
-    byte[] pdfData = documentService.convertDocument(document);
-
-    String name = document.getName() != null ? document.getName() : "document";
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_PDF);
-    headers.setContentDispositionFormData("attachment", name.endsWith(".pdf") ? name : name + ".pdf");
-    headers.setContentLength(pdfData.length);
-    return new ResponseEntity<>(pdfData, headers, HttpStatus.OK);
-  }
 }

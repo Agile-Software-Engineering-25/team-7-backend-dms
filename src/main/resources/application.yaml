@@ -25,13 +25,6 @@ server:
   error:
     include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:always}
 
-# JodConverter / LibreOffice configuration
-jodconverter:
-  enabled: ${JODCONVERTER_ENABLED:true}
-# office.home can also be set via system property -Doffice.home or env var OFFICE_HOME
-office:
-  home: ${office.home:${OFFICE_HOME:}}
-
 logging:
   level:
     root: ${LOGGING_LEVEL_ROOT:INFO}
