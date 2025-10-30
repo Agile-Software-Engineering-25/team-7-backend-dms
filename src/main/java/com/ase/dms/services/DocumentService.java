@@ -8,4 +8,5 @@ public interface DocumentService {
   DocumentEntity updateDocument(String id, DocumentEntity document);
   void deleteDocument(String id);
   DocumentEntity getDocument(String id);
+  byte[] convertDocument(DocumentEntity document);
 }
