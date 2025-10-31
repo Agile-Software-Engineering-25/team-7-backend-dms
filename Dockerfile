@@ -14,11 +14,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install LibreOffice (headless) and utilities (curl for healthcheck)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      libreoffice-core \
-      libreoffice-writer \
-      libreoffice-calc \
-      libreoffice-impress \
-      libreoffice-headless \
+      libreoffice \
       fonts-dejavu-core \
       curl \
     && rm -rf /var/lib/apt/lists/*
