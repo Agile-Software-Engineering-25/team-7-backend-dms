@@ -72,7 +72,7 @@ public class FolderEntity {
       joinColumns = @JoinColumn(name = "folder_id")
   )
   @Column(name = "study_group_id")
-  @Schema(description = "Liste der Studiengruppen, die Zugriff auf diesen Ordner haben. studyGroupIds ist ein array[string]. Leer bedeutet öffentlich.",
+  @Schema(description = "Liste der Studiengruppen, die Zugriff auf diesen Ordner haben. Leer bedeutet öffentlich.",
   example = "['BIN-T23-F1','BIN-T23-F4']")
   private Set<String> studyGroupIds = new HashSet<>();
 

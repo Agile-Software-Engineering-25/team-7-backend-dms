@@ -34,7 +34,8 @@ public class UserClientImpl implements UserClient {
       ResponseEntity<UserInfoDTO> response =
           restTemplate.getForEntity(url, UserInfoDTO.class);
       return Optional.ofNullable(response.getBody());
-    } catch (Exception ex) {
+    }
+    catch (Exception ex) {
       return Optional.empty();
     }
   }
