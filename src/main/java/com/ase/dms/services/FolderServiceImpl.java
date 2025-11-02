@@ -5,10 +5,19 @@ import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
 import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.FolderRepository;
+import com.ase.dms.security.UserInformationJWT;
+import com.ase.dms.services.UserClient;
+
+import jakarta.validation.ValidationException;
+
+import com.ase.dms.dtos.UserInfoDTO;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +32,15 @@ public class FolderServiceImpl implements FolderService {
   private static final String ROOT_ID = "root";
 
   private final FolderRepository folders;
+  private final UserClient userClient;
 
   /**
    * Constructor for FolderServiceImpl.
    * @param folders the folder repository
    */
-  public FolderServiceImpl(final FolderRepository folders) {
-    this.folders = folders;
+  public FolderServiceImpl(final FolderRepository folders, final UserClient userClient) {
+    this.folders = Objects.requireNonNull(folders);
+    this.userClient = Objects.requireNonNull(userClient);
   }
 
   /**
@@ -38,6 +49,7 @@ public class FolderServiceImpl implements FolderService {
    * @return FolderEntity with subfolders and documents accessible via JPA relationships
    */
   @Override
+  @Transactional(readOnly = true)
   public FolderEntity getFolderContents(final String id) {
     FolderEntity folder;
     if (ROOT_ID.equals(id)) {
@@ -50,8 +62,41 @@ public class FolderServiceImpl implements FolderService {
         .orElseThrow(() -> new FolderNotFoundException("Ordner "+ id + " nicht gefunden"));
     }
 
+    // Get Cohort from users API
+    String cohort = userClient.fetchCurrentUser()
+                  .map(UserInfoDTO::getCohort)
+                  .orElse(null);
+
+    // Recursively filter subtree if student role
+    if (!UserInformationJWT.hasRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")) {
+      folder.setSubfolders(filterFolderTree(folder.getSubfolders(), cohort));
+    }
+    
     // JPA relationships automatically provides access to subfolders and documents
     return folder;
+  }
+
+  // visibility rule: empty = public. Else has to contain consort
+  private boolean isVisibleForCohort(FolderEntity f, String cohort) {
+    Set<String> groups = f.getStudyGroupIds(); // Field is non-null (emptySet = public)
+    if (groups == null || groups.isEmpty()) {
+      return true;
+    }
+    return cohort != null && groups.contains(cohort);
+  }
+
+  // recursive filter
+  private List<FolderEntity> filterFolderTree(List<FolderEntity> children, String cohort) {
+    if (children == null || children.isEmpty()) {
+      return List.of();
+    }
+    return children.stream()
+      .filter(f -> isVisibleForCohort(f, cohort))
+      .map(f -> {
+        f.setSubfolders(filterFolderTree(f.getSubfolders(), cohort));
+        return f;
+      })
+      .collect(Collectors.toList());
   }
 
   /**
@@ -62,6 +107,16 @@ public class FolderServiceImpl implements FolderService {
   @Override
   @Transactional
   public FolderEntity createFolder(final FolderEntity folder) {
+    // Parent Id has to be set
+    if (folder.getParentId() == null) {
+      throw new ValidationException("parentId must not be null");
+    }
+
+    //studyGroupIds normalization - must not be null
+    if (folder.getStudyGroupIds() == null) {
+      folder.setStudyGroupIds(new HashSet<>());
+    }
+
     UuidValidator.validateOrThrow(folder.getParentId());
     // Load the parent folder and set the relationship directly
     FolderEntity parent = folders.findById(folder.getParentId())
