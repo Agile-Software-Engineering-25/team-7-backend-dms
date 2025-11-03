@@ -33,9 +33,11 @@ class FolderServiceImplTest {
 
   private FolderServiceImpl folderService;
 
+  private UserClientImpl userClient;
+
   @BeforeEach
   void setUp() {
-    folderService = new FolderServiceImpl(folderRepository, minIOService);
+    folderService = new FolderServiceImpl(folderRepository, minIOService, userClient);
   }
 
   @Test

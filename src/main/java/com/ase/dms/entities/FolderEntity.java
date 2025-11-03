@@ -7,7 +7,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -62,6 +65,17 @@ public class FolderEntity {
   @Schema(accessMode = Schema.AccessMode.READ_ONLY,
       description = "Liste der Dokumente in diesem Ordner")
   private List<DocumentEntity> documents = new ArrayList<>();
+
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(
+      name = "folder_study_groups",
+      joinColumns = @JoinColumn(name = "folder_id")
+  )
+  @Column(name = "study_group_id")
+  @Schema(description = "Liste der Studiengruppen, die Zugriff auf diesen Ordner haben. Leer bedeutet öffentlich.",
+  example = "['BIN-T23-F1','BIN-T23-F4']")
+  private Set<String> studyGroupIds = new HashSet<>();
+
 
   // Convenience method to get parent ID without loading the entity
   public String getParentId() {
