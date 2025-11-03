@@ -2,18 +2,34 @@ package com.ase.dms.services;
 
 import com.ase.dms.entities.DocumentEntity;
 import com.ase.dms.entities.FolderEntity;
+import com.ase.dms.exceptions.DocumentConversionException;
+import com.ase.dms.exceptions.DocumentConversionInternalException;
 import com.ase.dms.exceptions.DocumentNotFoundException;
 import com.ase.dms.exceptions.DocumentUploadException;
 import com.ase.dms.exceptions.FolderNotFoundException;
+import com.ase.dms.exceptions.MinIOSetObjectDataException;
 import com.ase.dms.helpers.NameIncrementHelper;
-import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
 import com.ase.dms.security.UserInformationJWT;
+import com.ase.dms.helpers.UuidValidator;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+
+import org.jodconverter.core.DocumentConverter;
+import org.jodconverter.core.document.DefaultDocumentFormatRegistry;
+import org.jodconverter.core.document.DocumentFormat;
+import org.jodconverter.core.document.DocumentFormatRegistry;
+import org.jodconverter.core.office.OfficeException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,19 +44,28 @@ public class DocumentServiceImpl implements DocumentService {
   private final DocumentRepository documents;
   private final FolderRepository folders;
 
+  @Autowired
+  private final MinIOService minIOService;
+  private final DocumentConverter documentConverter;
+
   /**
    * Constructor for DocumentServiceImpl.
+   *
    * @param documents the document repository
-   * @param folders the folder repository
+   * @param folders   the folder repository
    */
-  public DocumentServiceImpl(DocumentRepository documents, FolderRepository folders) {
+  public DocumentServiceImpl(DocumentRepository documents, FolderRepository folders,
+                             MinIOService minIOService, DocumentConverter documentConverter) {
     this.documents = documents;
     this.folders = folders;
+    this.minIOService = minIOService;
+    this.documentConverter = documentConverter;
   }
 
   /**
    * Create a new document in the given folder.
-   * @param file the file to upload
+   *
+   * @param file     the file to upload
    * @param folderId the target folder UUID
    * @return the created DocumentEntity
    */
@@ -88,10 +113,15 @@ public class DocumentServiceImpl implements DocumentService {
       }
       doc.setDownloadUrl(downloadUrl);
 
-      doc.setData(file.getBytes());
+      minIOService.setObject(doc.getId(), file.getBytes());
 
       return documents.save(doc);
     }
+
+    catch (MinIOSetObjectDataException e) {
+      throw e;
+    }
+
     catch (Exception e) {
       throw new DocumentUploadException(
           "Failed to process uploaded file: " + file.getOriginalFilename(), e);
@@ -100,6 +130,7 @@ public class DocumentServiceImpl implements DocumentService {
 
   /**
    * Get a document by its ID.
+   *
    * @param id the document UUID
    * @return the DocumentEntity
    */
@@ -107,12 +138,13 @@ public class DocumentServiceImpl implements DocumentService {
   public DocumentEntity getDocument(String id) {
     UuidValidator.validateOrThrow(id);
     return documents.findById(id)
-      .orElseThrow(() -> new DocumentNotFoundException(id));
+        .orElseThrow(() -> new DocumentNotFoundException(id));
   }
 
   /**
    * Update a document's metadata.
-   * @param id the document UUID
+   *
+   * @param id       the document UUID
    * @param incoming the new document data
    * @return the updated DocumentEntity
    */
@@ -152,6 +184,7 @@ public class DocumentServiceImpl implements DocumentService {
 
   /**
    * Delete a document by its ID.
+   *
    * @param id the document UUID
    */
   @Override
@@ -161,6 +194,85 @@ public class DocumentServiceImpl implements DocumentService {
     if (!documents.existsById(id)) {
       throw new DocumentNotFoundException(id);
     }
+    minIOService.deleteObject(id);
     documents.deleteById(id);
+  }
+
+  /**
+   * Converts the document to pdf.
+   *
+   * @param document       the document
+   * @return the bytes of the converted document (pdf)
+   */
+  @Override
+  @Transactional
+  public byte[] convertDocument(DocumentEntity document) {
+    byte[] data = minIOService.getObjectData(document.getId());
+
+    // Determine if the document is an office document we can convert
+    String type = document.getType() != null ? document.getType().toLowerCase(Locale.ROOT) : "";
+    String name = document.getName() != null ? document.getName() : "document";
+
+    // If already a PDF, just return it
+    if (type.contains("pdf") || name.toLowerCase(Locale.ROOT).endsWith(".pdf")) {
+      return data;
+    }
+
+    // Supported input types/extensions (common office types)
+    boolean supported = type.contains("msword")
+        || type.contains("officedocument")
+        || type.contains("vnd.openxmlformats-officedocument")
+        || name.toLowerCase(Locale.ROOT).matches(".*\\.(doc|docx|xls|xlsx|ppt|pptx)$");
+
+    if (!supported) {
+      throw new DocumentConversionException("Failed to convert unsupported type: " + type);
+    }
+
+    try (ByteArrayInputStream in = new ByteArrayInputStream(data);
+         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+      // Determine source and target document formats using the registry
+      DocumentFormatRegistry registry = DefaultDocumentFormatRegistry.getInstance();
+
+      // Try to resolve source format from MIME type first, then from file extension
+      DocumentFormat sourceFormat = null;
+      if (document.getType() != null && !document.getType().isEmpty()) {
+        sourceFormat = registry.getFormatByMediaType(document.getType());
+      }
+      if (sourceFormat == null) {
+        String ext = "";
+        int dot = name.lastIndexOf('.');
+        if (dot >= 0 && dot < name.length() - 1) {
+          ext = name.substring(dot + 1).toLowerCase(Locale.ROOT);
+        }
+        if (!ext.isEmpty()) {
+          sourceFormat = registry.getFormatByExtension(ext);
+        }
+      }
+
+      if (sourceFormat == null) {
+        throw new DocumentConversionException("Failed to resolve format of type: " + type);
+      }
+
+      DocumentFormat pdfFormat = registry.getFormatByMediaType("application/pdf");
+      if (pdfFormat == null) {
+        pdfFormat = registry.getFormatByExtension("pdf");
+      }
+
+      if (pdfFormat == null) {
+        throw new DocumentConversionInternalException("Internal misconfigured conversion");
+      }
+
+      // Ensure pdfFormat is non-null for static analysis
+      Objects.requireNonNull(pdfFormat, "PDF DocumentFormat not available");
+
+      // Convert to PDF using jodconverter with resolved formats
+      documentConverter.convert(in).as(sourceFormat).to(out).as(pdfFormat).execute();
+
+      return out.toByteArray();
+    }
+    catch (OfficeException | IOException e) {
+      throw new DocumentConversionException("Internal conversion error", e);
+    }
   }
 }
