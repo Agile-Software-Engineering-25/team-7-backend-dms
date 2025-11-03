@@ -181,7 +181,7 @@ public class FolderServiceImpl implements FolderService {
     }
 
     if (incoming.getStudyGroupIds() != null) {
-      existing.setStudyGroupIds(incoming.getStudyGroupIds);
+      existing.setStudyGroupIds(incoming.getStudyGroupIds());
     }
     
     return folders.save(existing);
