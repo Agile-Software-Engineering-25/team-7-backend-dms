@@ -33,6 +33,7 @@ class FolderServiceImplTest {
 
   private FolderServiceImpl folderService;
 
+  @Mock
   private UserClientImpl userClient;
 
   @BeforeEach
