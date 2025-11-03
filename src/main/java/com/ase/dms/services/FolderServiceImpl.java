@@ -179,6 +179,11 @@ public class FolderServiceImpl implements FolderService {
           targetParent.getSubfolders(), targetParentId, existing.getId());
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
+
+    if (incoming.getStudyGroupIds() != null) {
+      existing.setStudyGroupIds(incoming.getStudyGroupIds);
+    }
+    
     return folders.save(existing);
   }
 
