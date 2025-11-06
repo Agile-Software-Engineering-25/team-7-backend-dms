@@ -110,7 +110,8 @@ public class DocumentsController {
     HttpHeaders headers = new HttpHeaders();
     if (document.getType() != null && !document.getType().isEmpty()) {
       headers.setContentType(MediaType.parseMediaType(document.getType()));
-    } else {
+    }
+    else {
       headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
     }
 

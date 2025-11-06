@@ -43,7 +43,13 @@ class DocumentServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    service = new DocumentServiceImpl(documentRepository, folderRepository, minIOService, documentConverter, tagService);
+    service = new DocumentServiceImpl(
+        documentRepository,
+        folderRepository,
+        minIOService,
+        documentConverter,
+        tagService
+    );
   }
 
   @Test

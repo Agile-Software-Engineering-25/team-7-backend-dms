@@ -1,7 +1,6 @@
 package com.ase.dms.services;
 
 import com.ase.dms.entities.TagEntity;
-import com.ase.dms.exceptions.DmsException;
 import com.ase.dms.exceptions.TagNotFoundException;
 import com.ase.dms.repositories.TagRepository;
 import java.util.List;

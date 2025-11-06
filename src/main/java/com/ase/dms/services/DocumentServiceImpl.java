@@ -98,7 +98,8 @@ public class DocumentServiceImpl implements DocumentService {
             .path("/download")
             .build()
             .toUriString();
-      } catch (IllegalStateException e) {
+      }
+      catch (IllegalStateException e) {
         // No request context (e.g., in tests) - use relative path
         downloadUrl = "/dms/v1/documents/" + doc.getId() + "/download";
       }
@@ -107,9 +108,11 @@ public class DocumentServiceImpl implements DocumentService {
       minIOService.setObject(doc.getId(), file.getBytes());
 
       return documents.save(doc);
-    } catch (TagNotFoundException | MinIOSetObjectDataException e) {
+    }
+    catch (TagNotFoundException | MinIOSetObjectDataException e) {
       throw e;
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       throw new DocumentUploadException(
           "Failed to process uploaded file: " + file.getOriginalFilename(), e);
     }
@@ -265,7 +268,8 @@ public class DocumentServiceImpl implements DocumentService {
       documentConverter.convert(in).as(sourceFormat).to(out).as(pdfFormat).execute();
 
       return out.toByteArray();
-    } catch (OfficeException | IOException e) {
+    }
+    catch (OfficeException | IOException e) {
       throw new DocumentConversionException("Internal conversion error", e);
     }
   }
