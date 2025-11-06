@@ -8,28 +8,31 @@ import com.ase.dms.exceptions.DocumentNotFoundException;
 import com.ase.dms.exceptions.DocumentUploadException;
 import com.ase.dms.exceptions.FolderNotFoundException;
 import com.ase.dms.exceptions.MinIOSetObjectDataException;
+import com.ase.dms.exceptions.TagNotFoundException;
 import com.ase.dms.helpers.NameIncrementHelper;
+import com.ase.dms.helpers.UuidValidator;
 import com.ase.dms.repositories.DocumentRepository;
 import com.ase.dms.repositories.FolderRepository;
 import com.ase.dms.security.UserInformationJWT;
-import com.ase.dms.helpers.UuidValidator;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jodconverter.core.DocumentConverter;
 import org.jodconverter.core.document.DefaultDocumentFormatRegistry;
 import org.jodconverter.core.document.DocumentFormat;
 import org.jodconverter.core.document.DocumentFormatRegistry;
 import org.jodconverter.core.office.OfficeException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,29 +41,17 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 /**
  * Service implementation for document management.
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
 
   private final DocumentRepository documents;
   private final FolderRepository folders;
 
-  @Autowired
   private final MinIOService minIOService;
   private final DocumentConverter documentConverter;
-
-  /**
-   * Constructor for DocumentServiceImpl.
-   *
-   * @param documents the document repository
-   * @param folders   the folder repository
-   */
-  public DocumentServiceImpl(DocumentRepository documents, FolderRepository folders,
-                             MinIOService minIOService, DocumentConverter documentConverter) {
-    this.documents = documents;
-    this.folders = folders;
-    this.minIOService = minIOService;
-    this.documentConverter = documentConverter;
-  }
+  private final TagService tagService;
 
   /**
    * Create a new document in the given folder.
@@ -71,7 +62,7 @@ public class DocumentServiceImpl implements DocumentService {
    */
   @Override
   @Transactional
-  public DocumentEntity createDocument(MultipartFile file, String folderId) {
+  public DocumentEntity createDocument(MultipartFile file, String folderId, String[] tagUuids) {
     UuidValidator.validateOrThrow(folderId);
 
     // Validate that folder exists and load it for relationship
@@ -84,6 +75,7 @@ public class DocumentServiceImpl implements DocumentService {
 
       // Set the folder relationship directly - cleaner approach
       doc.setFolder(folder);
+      doc.setTags(Arrays.stream(tagUuids).map(tagService::getTag).toList());
 
       // Get siblings using JPA relationship
       List<DocumentEntity> siblings = folder.getDocuments();
@@ -106,8 +98,7 @@ public class DocumentServiceImpl implements DocumentService {
             .path("/download")
             .build()
             .toUriString();
-      }
-      catch (IllegalStateException e) {
+      } catch (IllegalStateException e) {
         // No request context (e.g., in tests) - use relative path
         downloadUrl = "/dms/v1/documents/" + doc.getId() + "/download";
       }
@@ -116,13 +107,9 @@ public class DocumentServiceImpl implements DocumentService {
       minIOService.setObject(doc.getId(), file.getBytes());
 
       return documents.save(doc);
-    }
-
-    catch (MinIOSetObjectDataException e) {
+    } catch (TagNotFoundException | MinIOSetObjectDataException e) {
       throw e;
-    }
-
-    catch (Exception e) {
+    } catch (Exception e) {
       throw new DocumentUploadException(
           "Failed to process uploaded file: " + file.getOriginalFilename(), e);
     }
@@ -168,6 +155,14 @@ public class DocumentServiceImpl implements DocumentService {
       existing.setName(NameIncrementHelper.getIncrementedName(incoming.getName(), siblingNames));
     }
 
+    if (incoming.getTags() != null) {
+      existing.setTags(
+          incoming.getTags().stream()
+              .map(tag -> tagService.getTag(tag.getUuid()))
+              .toList()
+      );
+    }
+
     if (incoming.getType() != null) {
       existing.setType(incoming.getType());
     }
@@ -201,7 +196,7 @@ public class DocumentServiceImpl implements DocumentService {
   /**
    * Converts the document to pdf.
    *
-   * @param document       the document
+   * @param document the document
    * @return the bytes of the converted document (pdf)
    */
   @Override
@@ -270,9 +265,16 @@ public class DocumentServiceImpl implements DocumentService {
       documentConverter.convert(in).as(sourceFormat).to(out).as(pdfFormat).execute();
 
       return out.toByteArray();
-    }
-    catch (OfficeException | IOException e) {
+    } catch (OfficeException | IOException e) {
       throw new DocumentConversionException("Internal conversion error", e);
     }
+  }
+
+  @Override
+  public DocumentEntity setDocumentTags(String id, String[] tags) {
+    DocumentEntity doc = getDocument(id);
+    log.info("Setting tags for document {} {}", id, tags);
+    doc.setTags(Arrays.stream(tags).map(tagService::getTag).collect(Collectors.toCollection(ArrayList::new)));
+    return documents.save(doc);
   }
 }
