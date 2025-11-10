@@ -3,20 +3,20 @@ package com.ase.dms.services;
 import com.ase.dms.entities.DocumentEntity;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 import org.jodconverter.core.DocumentConverter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.mock.web.MockMultipartFile;
-
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentServiceImplTest {
@@ -36,11 +36,20 @@ class DocumentServiceImplTest {
   @Mock
   private DocumentConverter documentConverter;
 
+  @Mock
+  private TagServiceImpl tagService;
+
   private DocumentServiceImpl service;
 
   @BeforeEach
   void setUp() {
-    service = new DocumentServiceImpl(documentRepository, folderRepository, minIOService, documentConverter);
+    service = new DocumentServiceImpl(
+        documentRepository,
+        folderRepository,
+        minIOService,
+        documentConverter,
+        tagService
+    );
   }
 
   @Test
@@ -94,7 +103,7 @@ class DocumentServiceImplTest {
     when(documentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
     // Act
-    DocumentEntity created = service.createDocument(file, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
+    DocumentEntity created = service.createDocument(file, "f1e1b676-474c-4014-a7ee-53fc5cb90127", new String[0]);
 
     // Damit der folgende getDocument()-Aufruf klappt, stubben wir findById() mit
     // der neuen ID:
@@ -127,7 +136,7 @@ class DocumentServiceImplTest {
         "conflict.txt",
         "text/plain",
         "Hello".getBytes());
-    DocumentEntity doc1 = service.createDocument(file1, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
+    DocumentEntity doc1 = service.createDocument(file1, "f1e1b676-474c-4014-a7ee-53fc5cb90127", new String[0]);
     assertEquals("conflict.txt", doc1.getName());
 
     // Second document: folder now contains doc1
@@ -139,7 +148,7 @@ class DocumentServiceImplTest {
         "conflict.txt",
         "text/plain",
         "World".getBytes());
-    DocumentEntity doc2 = service.createDocument(file2, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
+    DocumentEntity doc2 = service.createDocument(file2, "f1e1b676-474c-4014-a7ee-53fc5cb90127", new String[0]);
     assertEquals("conflict (1).txt", doc2.getName());
 
     // Third document: folder now contains doc1 and doc2
@@ -151,7 +160,7 @@ class DocumentServiceImplTest {
         "conflict.txt",
         "text/plain",
         "Again".getBytes());
-    DocumentEntity doc3 = service.createDocument(file3, "f1e1b676-474c-4014-a7ee-53fc5cb90127");
+    DocumentEntity doc3 = service.createDocument(file3, "f1e1b676-474c-4014-a7ee-53fc5cb90127", new String[0]);
     assertEquals("conflict (2).txt", doc3.getName());
   }
 
@@ -173,7 +182,7 @@ class DocumentServiceImplTest {
         "update.txt",
         "text/plain",
         "Hello".getBytes());
-    DocumentEntity doc1 = service.createDocument(file1, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
+    DocumentEntity doc1 = service.createDocument(file1, "f2e1b676-474c-4014-a7ee-53fc5cb90127", new String[0]);
 
     // Second document: folder now contains doc1
     mockFolder1.setDocuments(java.util.List.of(doc1));
@@ -184,7 +193,7 @@ class DocumentServiceImplTest {
         "update.txt",
         "text/plain",
         "World".getBytes());
-    DocumentEntity doc2 = service.createDocument(file2, "f2e1b676-474c-4014-a7ee-53fc5cb90127");
+    DocumentEntity doc2 = service.createDocument(file2, "f2e1b676-474c-4014-a7ee-53fc5cb90127", new String[0]);
     assertEquals("update (1).txt", doc2.getName());
 
     // Mock für findById() für updateDocument()

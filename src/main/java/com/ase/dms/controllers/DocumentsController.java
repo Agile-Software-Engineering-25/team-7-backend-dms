@@ -1,12 +1,11 @@
 package com.ase.dms.controllers;
 
 import com.ase.dms.entities.DocumentEntity;
+import com.ase.dms.entities.TagEntity;
 import com.ase.dms.services.DocumentService;
 import com.ase.dms.services.MinIOService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,7 +15,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -54,8 +62,9 @@ public class DocumentsController {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<DocumentEntity> uploadDocument(
       @Parameter(description = "File to upload", required = true) @RequestParam("file") MultipartFile file,
-      @Parameter(description = "Target folder UUID", required = true) @RequestParam("folderId") String folderId) {
-    DocumentEntity doc = documentService.createDocument(file, folderId);
+      @Parameter(description = "Target folder UUID", required = true) @RequestParam("folderId") String folderId,
+      @Parameter(description = "Document Tags") @RequestParam(value = "tags", required = false) String[] tags) {
+    DocumentEntity doc = documentService.createDocument(file, folderId, tags);
     return ResponseEntity.status(HttpStatus.CREATED).body(doc);
   }
 
@@ -111,6 +120,32 @@ public class DocumentsController {
     headers.setContentLength(data.length);
 
     return new ResponseEntity<>(data, headers, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Get document tags")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Document tags found"),
+      @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+  })
+  @GetMapping("/{id}/tags")
+  public ResponseEntity<TagEntity[]> getDocumentTags(
+      @Parameter(description = "Document UUID") @PathVariable String id
+  ) {
+    return ResponseEntity.ok(documentService.getDocument(id).getTags().toArray(new TagEntity[0]));
+  }
+
+  @Operation(summary = "Update document tags")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Document tags updated successfully"),
+      @ApiResponse(responseCode = "400", ref = "#/components/responses/ValidationErrorResponse"),
+      @ApiResponse(responseCode = "404", ref = "#/components/responses/DocumentNotFoundResponse")
+  })
+  @PutMapping("/{id}/tags")
+  public ResponseEntity<DocumentEntity> updateDocumentTags(
+      @Parameter(description = "Document UUID") @PathVariable String id,
+      @RequestBody String[] tags
+  ) {
+    return ResponseEntity.accepted().body(documentService.setDocumentTags(id, tags));
   }
 
   @Operation(summary = "Convert document file to pdf")

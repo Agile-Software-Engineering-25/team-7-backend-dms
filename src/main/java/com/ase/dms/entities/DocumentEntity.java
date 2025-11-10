@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -65,6 +66,9 @@ public class DocumentEntity {
    description = "ID des übergeordneten Ordners als JPA Reference",
     example = "ef9b2274-817e-4cba-879e-383548577f4e")
   private FolderEntity folder;
+
+  @ManyToMany(fetch = FetchType.EAGER)
+  private List<TagEntity> tags;
 
   // Convenience method to get folder ID without loading the entity
   public String getFolderId() {

@@ -50,11 +50,20 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.DELETE, "/v1/folders/**")
             .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
 
+            .requestMatchers(HttpMethod.POST, "/v1/tags/**")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
+            .requestMatchers(HttpMethod.PUT, "/v1/tags/**")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
+            .requestMatchers(HttpMethod.DELETE, "/v1/tags/**")
+            .hasAnyRole("Area-2.Team-7.ReadUpdateDelete.readwrite-document")
+            .requestMatchers(HttpMethod.GET, "/v1/tags/**")
+            .hasAnyRole("Area-2.Team-7.Read.read-document", "Area-2.Team-7.ReadUpdateDelete.readwrite-document")
+
             // All other requests require authentication
             .anyRequest().authenticated())
         .oauth2ResourceServer(oauth2 -> oauth2
             .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
-        .headers(h -> h.frameOptions(f -> f.disable())); 
+        .headers(h -> h.frameOptions(f -> f.disable()));
     return http.build();
   }
 
