@@ -22,10 +22,18 @@ RUN apt-get update && \
 WORKDIR /app
 # Non-root User für Security (Debian useradd)
 RUN groupadd -g 1001 appgroup && \
-    useradd -u 1001 -g appgroup -s /usr/sbin/nologin -M appuser
+    useradd -u 1001 -g appgroup -s /usr/sbin/nologin -m -d /home/appuser appuser && \
+    mkdir -p /home/appuser/.cache/dconf /home/appuser/.cache/fontconfig /home/appuser/.config/dconf /tmp/jodconverter && \
+    chown -R appuser:appgroup /home/appuser /tmp/jodconverter && \
+    chmod -R 700 /home/appuser /tmp/jodconverter
 
 COPY --from=build /app/target/*.jar app.jar
 RUN chown -R appuser:appgroup /app
+
+# Ensure HOME and XDG_CACHE_HOME are set for the non-root user (helps LibreOffice/dconf/fontconfig)
+ENV HOME=/home/appuser
+ENV XDG_CACHE_HOME=/home/appuser/.cache
+
 USER appuser
 
 # Set office home
