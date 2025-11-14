@@ -75,13 +75,20 @@ public class DocumentServiceImpl implements DocumentService {
 
       // Set the folder relationship directly - cleaner approach
       doc.setFolder(folder);
-      doc.setTags(Arrays.stream(tagUuids).map(tagService::getTag).toList());
+
+      if (tagUuids != null && tagUuids.length > 0) {
+        doc.setTags(Arrays.stream(tagUuids).map(tagService::getTag).toList());
+      }
+      else {
+        doc.setTags(new java.util.ArrayList<>());
+      }
 
       // Get siblings using JPA relationship
       List<DocumentEntity> siblings = folder.getDocuments();
       Set<String> siblingNames = NameIncrementHelper.collectSiblingNames(siblings, folderId, null);
 
-      doc.setName(NameIncrementHelper.getIncrementedName(file.getOriginalFilename(), siblingNames));
+      String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "document";
+      doc.setName(NameIncrementHelper.getIncrementedName(originalFilename, siblingNames));
       doc.setType(file.getContentType());
       doc.setSize(file.getSize());
       doc.setOwnerId(UserInformationJWT.getUserId());
